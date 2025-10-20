@@ -107,7 +107,7 @@ class Artifact:
         self.effect = effect
 
 # --- 2. 게임 데이터베이스 (DB) ---
-# (이전 코드와 동일 - 캐릭터 정보, 교육 정보 등 업데이트 반영됨)
+# (이전 코드와 동일)
 TAX_MAN_DB = {
     "lim": TaxManCard(name="임향수", grade_num=5, description="국세청의 핵심 요직을 두루 거친 '조사통의 대부'. 굵직한 대기업 비자금, 불법 증여 조사를 지휘한 경험이 풍부하다.", cost=0, hp=120, focus=3, analysis=10, persuasion=10, evidence=10, data=10, ability_name="[기획 조사]", ability_desc="전설적인 통찰력. 매 턴 집중력 +1. 팀의 '분석', '데이터' 스탯에 비례해 '비용', '자본' 카드 피해량 증가."),
     "han": TaxManCard(name="한중히", grade_num=6, description="국제조세 분야에서 잔뼈가 굵은 전문가. OECD 파견 경험으로 국제 공조 및 BEPS 프로젝트에 대한 이해가 깊다.", cost=0, hp=80, focus=2, analysis=9, persuasion=6, evidence=8, data=9, ability_name="[역외탈세 추적]", ability_desc="'외국계' 기업 또는 '자본 거래' 혐의 공격 시, 최종 피해량 +30%."),
@@ -263,7 +263,7 @@ COMPANY_DB = [
 
 # --- 3. 게임 상태 초기화 및 관리 ---
 # (이전 코드와 동일)
-# ... initialize_game ...
+# ... initialize_game ... (이 함수도 누락되었을 수 있으나, main()에서 직접 호출되지는 않음)
 
 # --- 4. 게임 로직 함수 ---
 
@@ -346,14 +346,240 @@ def start_battle(company_template):
 
     final_battle_deck = temp_deck_base + added_cards
     st.session_state.player_deck = random.sample(final_battle_deck, len(final_battle_deck))
-    st.session_state.player_discard = []; st.session_state.player_hand = []; start_player_turn()
+    st.session_state.player_discard = []; st.session_state.player_hand = []
+    
+    # [수정] start_player_turn 함수도 정의가 누락되었을 수 있습니다.
+    # 만약 그렇다면, 아래의 임시 함수 정의를 추가해야 합니다.
+    # (일단은 정의되어 있다고 가정하고 호출합니다.)
+    
+    # start_player_turn() # <- 이 함수도 정의가 필요합니다.
+    
+    # [임시 수정] start_player_turn이 없으므로, 해당 함수의 핵심 기능(카드 뽑기)을 임시로 넣음
+    # (만약 start_player_turn 함수가 있다면 이 코드는 필요 없고 위 코드를 활성화)
+    st.session_state.current_focus = st.session_state.team_stats.get('focus', 3)
+    # (드로우 로직 등... start_player_turn 함수를 찾아 붙여넣는 것이 가장 좋습니다.)
+    # draw_cards(5 + st.session_state.bonus_draw) # <- draw_cards도 정의 필요
+    st.session_state.bonus_draw = 0 
+    
+    # [재수정] start_player_turn, draw_cards 등이 모두 없다고 가정하면,
+    # start_battle 함수 자체가 정상 동작할 수 없습니다.
+    # 우선 NameError를 일으킨 UI 함수 정의에 집중하고,
+    # 이후 발생하는 NameError도 같은 방식으로 해결해야 합니다.
+    # start_battle 내의 'start_player_turn()' 호출을 임시 주석 처리합니다.
+    # start_player_turn() # <- 이 함수가 정의되지 않았다면 NameError가 또 발생합니다.
+    pass # 우선 전투 시작 상태로만 변경
+    
 
 # ... (go_to_next_stage 등 나머지 로직 함수들) ...
 
 # --- 5. UI 화면 함수 ---
-# (이전 코드와 동일 - 이미지 교체, 드래프트 후보 수 등 반영됨)
-# ... (show_main_menu, show_setup_draft_screen 등 UI 함수들) ...
+
+# [수정됨] NameError의 원인인 누락된 UI 함수들의 기본 틀을 추가합니다.
+# (이전 코드에서 이 함수들의 정의가 생략되었습니다.)
+# (실제 UI 코드가 있다면 이 임시 함수들 대신 붙여넣으세요.)
+
+def show_main_menu():
+    """ 1. 메인 메뉴 화면 """
+    st.title("세무조사 덱빌딩 (가제)")
+    st.subheader("Streamlit Demo")
+    
+    if st.button("게임 시작", type="primary", use_container_width=True):
+        # [수정] 'GAME_SETUP_DRAFT' 상태로 가기 위해
+        # 'main' 함수가 요구하는 'draft_team_choices'와 
+        # 'draft_artifact_choices'를 여기서 생성합니다.
+        # (이 로직은 원래 'initialize_game' 같은 별도 함수에 있었을 수 있습니다.)
+        try:
+            st.session_state.game_state = "GAME_SETUP_DRAFT"
+            
+            # 'show_setup_draft_screen'에 필요한 최소한의 데이터 생성
+            team_candidates = list(TAX_MAN_DB.keys())
+            st.session_state.draft_team_choices = random.sample(team_candidates, 3) 
+            
+            artifact_candidates = list(ARTIFACT_DB.keys())
+            st.session_state.draft_artifact_choices = random.sample(artifact_candidates, 3)
+            
+            # 다른 키들도 혹시 모르니 초기화 (main 함수 유효성 검사 통과용)
+            st.session_state.battle_log = ["게임 시작! 팀과 조사도구를 선택하세요."]
+            st.session_state.player_team = []
+            st.session_state.player_deck = []
+            st.session_state.player_discard = []
+            st.session_state.player_hand = []
+            st.session_state.current_stage_level = 0
+            st.session_state.player_artifacts = []
+            st.session_state.team_stats = {}
+            st.session_state.company_order = [] 
+            st.session_state.current_battle_company = None
+            st.session_state.total_collected_tax = 0
+
+            st.rerun()
+        except Exception as e:
+            st.error(f"드래프트 화면 초기화 중 오류: {e}")
+            st.error("TAX_MAN_DB 또는 ARTIFACT_DB가 비어있는지 확인하세요.")
+
+def show_setup_draft_screen():
+    """ 2. 팀/아티팩트 선택(드래프트) 화면 """
+    st.title("조사 팀 구성")
+    st.write("함께 조사할 팀원과 초기 조사 도구를 선택하세요.")
+    
+    st.header("팀원 선택 (1명)")
+    if 'draft_team_choices' in st.session_state:
+        cols = st.columns(len(st.session_state.draft_team_choices))
+        for i, (key, char) in enumerate([(k, TAX_MAN_DB[k]) for k in st.session_state.draft_team_choices]):
+            with cols[i]:
+                with st.container(border=True):
+                    st.subheader(f"{char.name} ({char.grade})")
+                    st.write(f"_{char.description}_")
+                    st.info(f"**능력: {char.ability_name}**\n{char.ability_desc}")
+                    if st.button(f"{char.name} 선택", key=f"team_{key}", use_container_width=True):
+                        st.session_state.player_team = [copy.deepcopy(char)]
+                        st.success(f"{char.name} 선택 완료!")
+                        st.rerun() # 선택 후 화면 갱신
+    
+    st.header("조사 도구 선택 (1개)")
+    if 'draft_artifact_choices' in st.session_state:
+        cols_art = st.columns(len(st.session_state.draft_artifact_choices))
+        for i, (key, art) in enumerate([(k, ARTIFACT_DB[k]) for k in st.session_state.draft_artifact_choices]):
+            with cols_art[i]:
+                with st.container(border=True):
+                    st.subheader(f"{art.name}")
+                    st.write(f"_{art.description}_")
+                    st.info(f"**효과:** {art.effect['type']} / {art.effect['subtype']}")
+                    if st.button(f"{art.name} 선택", key=f"art_{key}", use_container_width=True):
+                        st.session_state.player_artifacts = [copy.deepcopy(art)]
+                        st.success(f"{art.name} 선택 완료!")
+                        st.rerun() # 선택 후 화면 갱신
+
+    st.divider()
+
+    # (임시) 필수 선택 확인 및 다음 단계로 이동
+    if st.session_state.player_team and st.session_state.player_artifacts:
+        st.info("팀 구성 완료! 조사 지역으로 이동합니다.")
+        if st.button("조사 시작하기", type="primary", use_container_width=True):
+            # [수정] 다음 단계(MAP)에 필요한 'company_order' 등을 여기서 설정
+            # (이 로직도 'initialize_game'에 있었을 수 있음)
+            st.session_state.game_state = "MAP"
+            st.session_state.company_order = random.sample(COMPANY_DB, len(COMPANY_DB))
+            
+            # (임시) 초기 덱 설정
+            base_deck_keys = ["c_tier_01"] * 4 + ["basic_01"] * 2 + ["c_tier_02"] * 4
+            st.session_state.player_deck = [copy.deepcopy(LOGIC_CARD_DB[k]) for k in base_deck_keys]
+            
+            # (임시) 팀 스탯 설정
+            st.session_state.team_stats = {"analysis": 10, "persuasion": 10, "evidence": 10, "data": 10} # 예시
+            st.session_state.team_hp = 100
+            st.session_state.max_team_hp = 100
+            
+            st.rerun()
+    else:
+        st.warning("팀원 1명과 조사 도구 1개를 모두 선택해야 합니다.")
+
+
+def show_battle_screen():
+    """ 4. 전투(조사) 화면 """
+    st.title("조사 진행 중...")
+    st.write("이곳에 `show_battle_screen` 함수의 실제 UI 코드를 넣어주세요.")
+    
+    company = st.session_state.get('current_battle_company')
+    if company:
+        st.header(f"VS {company.name}")
+    
+    st.error("전투 로직이 구현되지 않았습니다.")
+    
+    # (임시) 전투 스킵 버튼
+    if st.button("임시: 전투 승리 (다음 스테이지)"):
+        st.session_state.game_state = "REWARD"
+        st.session_state.total_collected_tax += company.tax_target
+        st.rerun()
+    if st.button("임시: 전투 패배 (게임 오버)"):
+        st.session_state.game_state = "GAME_OVER"
+        st.rerun()
+
+def show_reward_screen():
+    """ 5. 보상 화면 """
+    st.title("조사 완료")
+    st.write("이곳에 `show_reward_screen` 함수의 실제 UI 코드를 넣어주세요.")
+    st.success("조사에 성공했습니다! 보상을 선택하세요.")
+
+    # (임시) 다음 단계로 이동 버튼
+    if st.button("다음 기업으로 이동"):
+        # go_to_next_stage() # <- 이 함수도 정의가 필요할 수 있습니다.
+        
+        # (임시) go_to_next_stage 로직 대체
+        st.session_state.current_stage_level += 1
+        if st.session_state.current_stage_level >= len(st.session_state.company_order):
+            st.session_state.game_state = "GAME_OVER" # (임시) 모든 스테이지 완료 시 게임 오버
+            st.success("모든 기업 조사 완료!")
+        else:
+            st.session_state.game_state = "MAP"
+        st.rerun()
+
+def show_reward_remove_screen():
+    """ 6. 카드 제거 화면 (보상 중 하나) """
+    st.title("덱 정비")
+    st.write("이곳에 `show_reward_remove_screen` 함수의 실제 UI 코드를 넣어주세요.")
+    st.info("제거할 카드를 선택하세요.")
+
+    # (임시) 다음 단계로 이동 버튼
+    if st.button("정비 완료 (다음 기업으로)"):
+        # go_to_next_stage() # <- 이 함수도 정의가 필요할 수 있습니다.
+
+        # (임시) go_to_next_stage 로직 대체
+        st.session_state.current_stage_level += 1
+        if st.session_state.current_stage_level >= len(st.session_state.company_order):
+            st.session_state.game_state = "GAME_OVER" # (임시) 모든 스테이지 완료 시 게임 오버
+            st.success("모든 기업 조사 완료!")
+        else:
+            st.session_state.game_state = "MAP"
+        st.rerun()
+
+
+def show_game_over_screen():
+    """ 7. 게임 오버 화면 """
+    st.title("게임 종료")
+    st.write("이곳에 `show_game_over_screen` 함수의 실제 UI 코드를 넣어주세요.")
+    
+    total_tax = st.session_state.get('total_collected_tax', 0)
+    stage = st.session_state.get('current_stage_level', 0)
+    
+    st.header(f"최종 성과: {total_tax} 억원 추징")
+    st.subheader(f"조사 완료 기업: {stage} 개")
+    
+    if st.button("메인 메뉴로 돌아가기", use_container_width=True):
+        st.session_state.game_state = "MAIN_MENU"
+        # 세션 상태 초기화 (필요시)
+        keys_to_delete = [k for k in st.session_state.keys() if k != 'game_state']
+        for key in keys_to_delete:
+            if key in st.session_state:
+                del st.session_state[key]
+        st.rerun()
+
+def show_player_status_sidebar():
+    """ 사이드바에 플레이어/팀 상태 표시 """
+    with st.sidebar:
+        st.title("조사팀 현황")
+        st.write("이곳에 `show_player_status_sidebar` 함수의 실제 UI 코드를 넣어주세요.")
+        
+        team_hp = st.session_state.get('team_hp', 0)
+        max_team_hp = st.session_state.get('max_team_hp', 100)
+        st.progress(team_hp / max_team_hp if max_team_hp > 0 else 0, text=f"❤️ 팀 체력: {team_hp} / {max_team_hp}")
+
+        st.subheader("팀원")
+        for char in st.session_state.get('player_team', []):
+            st.write(f"- {char.name} ({char.grade})")
+            
+        st.subheader("조사 도구")
+        for art in st.session_state.get('player_artifacts', []):
+            st.write(f"- {art.name}")
+            
+        st.subheader("덱")
+        st.write(f"덱: {len(st.session_state.get('player_deck', []))} 장")
+        st.write(f"손: {len(st.session_state.get('player_hand', []))} 장")
+        st.write(f"버림: {len(st.session_state.get('player_discard', []))} 장")
+
+
+# --- (이 함수는 사용자가 제공한 원본 코드) ---
 def show_map_screen():
+    """ 3. 맵(기업 선택) 화면 """
     # 필수 키 확인 (안전 장치)
     required_keys_map = ['current_stage_level', 'company_order']
     if not all(key in st.session_state for key in required_keys_map):
@@ -389,10 +615,10 @@ def show_map_screen():
                 # 전투 시작 전 필수 키 확인 (추가 안정성)
                 base_required_keys = ['player_team', 'player_deck', 'player_discard', 'player_hand', 'current_stage_level', 'player_artifacts', 'team_stats', 'battle_log']
                 if not all(key in st.session_state for key in base_required_keys):
-                     st.error("게임 상태 오류. 메인 메뉴에서 다시 시작해주세요.")
-                     st.session_state.game_state = "MAIN_MENU"
-                     st.rerun()
-                     return
+                        st.error("게임 상태 오류. 메인 메뉴에서 다시 시작해주세요.")
+                        st.session_state.game_state = "MAIN_MENU"
+                        st.rerun()
+                        return
                 start_battle(company); st.rerun()
     else:
         st.success("🎉 모든 기업 조사 완료! (데모 종료)"); st.balloons()
@@ -422,7 +648,7 @@ def main():
         if current_game_state == "BATTLE" or current_game_state == "REWARD": # REWARD에서도 company 필요
             required_keys.append('current_battle_company')
     elif current_game_state == "GAME_OVER":
-         required_keys = ['total_collected_tax', 'current_stage_level']
+        required_keys = ['total_collected_tax', 'current_stage_level']
 
 
     # 필요한 키가 없으면 상태를 유효하지 않음으로 설정
@@ -431,6 +657,10 @@ def main():
         if 'battle_log' not in st.session_state and current_game_state in ["MAP", "BATTLE", "REWARD", "REWARD_REMOVE"]:
             st.session_state.battle_log = []
         else:
+            # [수정] 누락된 키가 무엇인지 명시적으로 로깅 (디버깅용)
+            missing_keys = [k for k in required_keys if k not in st.session_state]
+            if missing_keys and current_game_state != "MAIN_MENU":
+                st.toast(f"⚠️ 상태 오류: '{current_game_state}'에 {missing_keys} 키가 없습니다. 초기화합니다.")
             is_state_valid = False # battle_log 외 다른 키가 없으면 유효하지 않음
 
 
