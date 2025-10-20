@@ -37,7 +37,10 @@ def format_krw(amount_in_millions):
             return f"{amount_in_millions / 10_000:,.0f}억원"
         # 1억 (100 백만원) 이상
         elif abs(amount_in_millions) >= 100:
-            return f"{amount_in_millions / 100:,.0f}억원
+            # --- [BUG FIX] ---
+            # 닫는 따옴표(")가 누락되었던 오류 수정
+            return f"{amount_in_millions / 100:,.0f}억원"
+            # --- [End of BUG FIX] ---
         # 1억 미만은 백만원 단위로
         else:
             return f"{amount_in_millions:,.0f}백만원"
@@ -66,7 +69,7 @@ class TaxManCard(Card):
         self.evidence = evidence
         self.data = data
         self.ability_name = ability_name
-        self.ability_desc = ability_desc # (개선) 이 설명이 자세해짐
+        self.ability_desc = ability_desc
         grade_map = {4: "S", 5: "S", 6: "A", 7: "B", 8: "C", 9: "C"}
         self.grade = grade_map.get(self.grade_num, "C")
 
@@ -113,8 +116,9 @@ class Artifact:
 
 # --- 2. 게임 데이터베이스 (DB) ---
 
-# --- [수정됨] 조사관 DB (설명 대폭 강화, Focus 스탯 하향 유지) ---
+# --- [수정됨] 조사관 DB (신규 3명 추가, 설명 보강) ---
 TAX_MAN_DB = {
+    # 기존 팀장급
     "lim": TaxManCard(name="임향수", grade_num=4, position="팀장", cost=0, hp=150, focus=3, analysis=10, persuasion=10, evidence=10, data=10, 
                     description="[13대 국세청장] '조사통의 대부'. 서울청 조사국장, 중부청장 등 핵심 요직 역임. 굵직한 대기업 비자금, 불법 증여 조사를 지휘한 '기획 조사의 달인'.", 
                     ability_name="[기획 조사]", 
@@ -131,6 +135,18 @@ TAX_MAN_DB = {
                     description="[9대 국세청장] '대기업 저격수'의 원조. 서울청장 시절 변칙 상속/증여 조사를 강력하게 지휘.", 
                     ability_name="[대기업 저격]", 
                     ability_desc="'대기업', '외국계' 기업의 '법인세' 혐의 카드 공격 시 최종 피해량 +25%."),
+    
+    # --- [신규] 팀장급 2명 ---
+    "kim_dj": TaxManCard(name="김대지", grade_num=5, position="팀장", cost=0, hp=110, focus=2, analysis=10, persuasion=7, evidence=7, data=10, 
+                    description="[24대 국세청장] '전략적 세정 전문가'. 차장, 서울청장 역임. 부동산 투기, L&H 사태 등 대규모 조사를 데이터 기반으로 지휘.", 
+                    ability_name="[부동산 투기 조사]", 
+                    ability_desc="팀의 '데이터' 스탯이 50 이상일 경우, 턴 시작 시 '금융거래 분석' 카드를 1장 생성하여 손에 넣습니다."),
+    "lee_hd": TaxManCard(name="이현동", grade_num=5, position="팀장", cost=0, hp=120, focus=3, analysis=7, persuasion=8, evidence=10, data=8, 
+                    description="[19대 국세청장] '강력한 조사통'. 중부청장, 조사국장 역임. '지하경제 양성화', '역외탈세 추적'에서 큰 성과를 거둠.", 
+                    ability_name="[지하경제 양성화]", 
+                    ability_desc="'고의적 누락(Intentional)' 혐의에 대한 모든 공격의 최종 피해량 +20%."),
+
+    # 기존 반장/조사관
     "kim": TaxManCard(name="김철주", grade_num=6, position="조사반장", cost=0, hp=130, focus=2, analysis=6, persuasion=8, evidence=9, data=5, 
                     description="[前 서울청 조사4국장] '지하경제 양성화' 전문가. 고소득 자영업자, 유흥업소 등 현장 중심의 특별 조사를 지휘.", 
                     ability_name="[압수수색]", 
@@ -150,7 +166,13 @@ TAX_MAN_DB = {
     "lee": TaxManCard(name="이철수", grade_num=7, position="일반조사관", cost=0, hp=100, focus=2, analysis=5, persuasion=5, evidence=5, data=5, 
                     description="[가상] 갓 임용된 7급 공채 신입. 세법 원칙과 기본기에 충실하며, 기초 자료 수집과 경비 처리를 담당.", 
                     ability_name="[기본기]", 
-                    ability_desc="'기본 경비 적정성 검토', '단순 경비 처리 오류 지적' 카드의 피해량 +8.")
+                    ability_desc="'기본 경비 적정성 검토', '단순 경비 처리 오류 지적' 카드의 피해량 +8."),
+
+    # --- [신규] 반장급 1명 ---
+    "ahn_wg": TaxManCard(name="안원구", grade_num=6, position="조사반장", cost=0, hp=130, focus=2, analysis=8, persuasion=5, evidence=10, data=6, 
+                    description="[前 서울청 조사국장/대구청장] '특수 조사의 귀재'. 거대 기업들의 비자금, 로비 등 굵직한 사건을 다룸. 내부 고발로도 유명.", 
+                    ability_name="[특수 조사]", 
+                    ability_desc="'현장 압수수색', '차명계좌 추적' 카드의 비용 -1. (최소 0)")
 }
 
 
@@ -282,6 +304,7 @@ def initialize_game(chosen_lead: TaxManCard, chosen_artifact: Artifact):
     team_members = []
     team_members.append(chosen_lead) 
     
+    # (수정) '안원구' 등 신규 반장급이 풀에 포함됨
     chief_candidates = [m for m in TAX_MAN_DB.values() if 6 <= m.grade_num <= 7 and "반장" in m.position]
     officer_candidates = [m for m in TAX_MAN_DB.values() if 7 <= m.grade_num <= 8 and "조사관" in m.position]
     remaining_pool = chief_candidates + officer_candidates
@@ -326,9 +349,7 @@ def initialize_game(chosen_lead: TaxManCard, chosen_artifact: Artifact):
     st.session_state.company_order = random.sample(COMPANY_DB, len(COMPANY_DB))
     st.session_state.game_state = "MAP" 
     
-    # --- [BUG FIX] `current_stage_level`이 여기서 초기화됩니다 ---
     st.session_state.current_stage_level = 0
-    
     st.session_state.total_collected_tax = 0
 
 # --- 4. 게임 로직 함수 ---
@@ -479,6 +500,10 @@ def calculate_card_cost(card):
     if "박지연" in [m.name for m in st.session_state.player_team] and st.session_state.get('turn_first_card_played', True) and card_type_match:
         cost_to_pay = max(0, cost_to_pay - 1)
         
+    # (수정) '안원구' 능력 적용
+    if "안원구" in [m.name for m in st.session_state.player_team] and card.name in ['현장 압수수색', '차명계좌 추적']:
+        cost_to_pay = max(0, cost_to_pay - 1)
+        
     for artifact in st.session_state.player_artifacts:
         if artifact.effect["type"] == "on_cost_calculate":
             if card.name in artifact.effect["target_cards"]:
@@ -549,9 +574,9 @@ def execute_attack(card_index, tactic_index):
         damage += 8; log_message("✨ [기본기] +8!", "info")
         
     if "임향수" in [m.name for m in st.session_state.player_team] and ('분석' in card.name or '자료' in card.name or '추적' in card.name or AttackCategory.CAPITAL in card.attack_category):
-        # (수정) 임향수 능력 설명 변경에 따른 로직 수정
-        damage += 10 + int(team_stats["analysis"] * 0.1 + team_stats["data"] * 0.1) # 기본 10 + 스탯 보너스
-        log_message("✨ [기획 조사] +10 및 스탯 보너스!", "info")
+        bonus = int(team_stats["analysis"] * 0.1 + team_stats["data"] * 0.1) # 스탯 비례 보너스
+        damage += bonus 
+        log_message(f"✨ [기획 조사] 스탯 비례 피해 +{bonus}!", "info")
         
     bonus_multiplier = 1.0
     if card.special_bonus and card.special_bonus.get('target_method') == tactic.method_type:
@@ -566,8 +591,19 @@ def execute_attack(card_index, tactic_index):
         
     if "서영택" in [m.name for m in st.session_state.player_team] and (company.size == "대기업" or company.size == "외국계") and TaxType.CORP in card.tax_type:
         bonus_multiplier *= 1.25; log_message("✨ [대기업 저격] +25%!", "info")
+
+    # (수정) '이현동' 능력 적용
+    if "이현동" in [m.name for m in st.session_state.player_team] and tactic.method_type == MethodType.INTENTIONAL:
+        bonus_multiplier *= 1.2; log_message("✨ [지하경제 양성화] +20%!", "info")
         
     final_damage = int(damage * bonus_multiplier)
+    
+    # (수정) '김대지' 능력 적용 (카드 생성) - 턴 시작 시
+    if "김대지" in [m.name for m in st.session_state.player_team] and team_stats["data"] >= 50:
+        if 'kim_dj_effect_used' not in st.session_state or st.session_state.kim_dj_effect_used == False:
+            st.session_state.player_hand.append(LOGIC_CARD_DB["b_tier_01"]) # 금융거래 분석
+            log_message("✨ [부동산 투기 조사] '금융거래 분석' 카드 1장 획득!", "info")
+            st.session_state.kim_dj_effect_used = True # 턴당 1회
     
     remaining_tactic_hp = tactic.total_amount - tactic.exposed_amount
     damage_to_tactic = min(final_damage, remaining_tactic_hp)
@@ -659,12 +695,11 @@ def go_to_next_stage(add_card=None, heal_amount=0):
     
 # --- 5. UI 화면 함수 ---
 
-# --- [수정됨] show_main_menu (이미지 교체/축소, URL 오류 수정) ---
+# (이전과 동일)
 def show_main_menu():
     st.title("💼 세무조사: 덱빌딩 로그라이크"); st.markdown("---"); st.header("국세청에 오신 것을 환영합니다.")
     st.write("당신은 오늘부로 세무조사팀에 발령받았습니다. 기업들의 교묘한 탈루 혐의를 밝혀내고, 공정한 과세를 실현하십시오.")
     
-    # (개선) 이미지 교체, width=400으로 축소, URL(https://) 수정
     st.image("https://cphoto.asiae.co.kr/listimglink/1/2021071213454415883_1626065144.jpg", 
              caption="국세청(세종청사) 전경", 
              width=400)
@@ -675,6 +710,7 @@ def show_main_menu():
         seed = st.session_state.get('seed', 0)
         if seed != 0: random.seed(seed) 
         
+        # (수정) 신규 팀장들이 드래프트 풀에 포함됨
         lead_candidates = [m for m in TAX_MAN_DB.values() if "팀장" in m.position]
         st.session_state.draft_team_choices = random.sample(lead_candidates, min(len(lead_candidates), 3))
         
@@ -718,13 +754,13 @@ def show_setup_draft_screen():
     st.markdown("---")
     st.subheader("1. 팀장을 선택하세요:")
     
-    # (개선) st.radio에서 format_func로 더 자세한 정보(ability_desc) 표시
     selected_lead_index = st.radio(
         "팀장 후보",
         options=range(len(team_choices)),
+        # (개선) 강화된 캐릭터 설명이 여기서 표시됨
         format_func=lambda i: (
             f"**{team_choices[i].name} ({team_choices[i].grade}급)** | {team_choices[i].description}\n"
-            f"   └ {team_choices[i].ability_name}: {team_choices[i].ability_desc}"
+            f"   └ **{team_choices[i].ability_name}**: {team_choices[i].ability_desc}"
         ),
         label_visibility="collapsed"
     )
@@ -754,6 +790,15 @@ def show_setup_draft_screen():
 
 # (이전과 동일)
 def show_map_screen():
+    # --- [BUG FIX] ---
+    # 맵 스크린 로드 시, 초기화가 안된 상태(예: 새로고침)면 메인으로 보냄
+    if 'current_stage_level' not in st.session_state:
+        st.warning("게임 상태가 초기화되지 않았습니다. 메인 메뉴로 돌아갑니다.")
+        st.session_state.game_state = "MAIN_MENU"
+        st.rerun()
+        return # 즉시 실행 중단
+    # --- [End of BUG FIX] ---
+
     st.header(f"📍 조사 지역 (Stage {st.session_state.current_stage_level + 1})"); st.write("조사할 기업 선택:")
     company_list = st.session_state.company_order
     
@@ -781,7 +826,7 @@ def show_map_screen():
         st.success("🎉 모든 기업 조사 완료! (데모 종료)"); st.balloons()
         if st.button("🏆 다시 시작"): st.session_state.game_state = "MAIN_MENU"; st.rerun()
 
-# (이전과 동일, 단 expander의 설명이 자세해짐)
+# (이전과 동일)
 def show_battle_screen():
     if not st.session_state.current_battle_company: st.error("오류: 기업 정보 없음."); st.session_state.game_state = "MAP"; st.rerun(); return
     
@@ -801,7 +846,6 @@ def show_battle_screen():
             st.markdown(f"- **데이터:** {stats['data']} (자본/금융 카드 ↑)")
             
         st.markdown("---")
-        # (개선) 자세해진 설명이 expander에 표시됨
         for member in st.session_state.player_team:
             with st.expander(f"**{member.name}** ({member.position}/{member.grade}급)"):
                 st.write(f"HP:{member.hp}/{member.max_hp}, Focus:{member.focus}"); 
@@ -867,7 +911,11 @@ def show_battle_screen():
         if st.session_state.get("selected_card_index") is not None:
             if st.button("❌ 공격 취소", use_container_width=True, type="secondary"): cancel_card_selection()
         else:
-            if st.button("➡️ 턴 종료", use_container_width=True, type="primary"): end_player_turn(); st.rerun()
+            if st.button("➡️ 턴 종료", use_container_width=True, type="primary"): 
+                # (수정) 턴 종료 시 '김대지' 효과 플래그 초기화
+                if 'kim_dj_effect_used' in st.session_state:
+                    st.session_state.kim_dj_effect_used = False
+                end_player_turn(); st.rerun()
             
         st.markdown("---")
         
@@ -1007,13 +1055,12 @@ def show_reward_remove_screen():
     if st.button("제거 취소 (맵으로 돌아가기)", type="secondary"):
         go_to_next_stage()
 
-# --- [수정됨] show_game_over_screen (이미지 축소, URL 오류 수정) ---
+# (이전과 동일)
 def show_game_over_screen():
     st.header("... 조사 중단 ..."); st.error("팀 체력 소진.")
     st.metric("최종 총 추징 세액", f"💰 {st.session_state.total_collected_tax:,} 억원")
     st.metric("진행 스테이지", f"📍 {st.session_state.current_stage_level + 1}")
     
-    # (개선) 이미지 축소(width=400), URL(https://) 수정
     st.image("https://images.unsplash.com/photo-1554224155-16954a151120?ixlib=rb-4.0.3&q=80&w=1080", 
              caption="지친 조사관들...", 
              width=400)
@@ -1054,23 +1101,19 @@ def show_player_status_sidebar():
             st.session_state.game_state = "MAIN_MENU"; st.rerun()
 
 # --- 6. 메인 실행 로직 ---
-# --- [수정됨] main (페이지 새로고침 오류 방지 로직 추가) ---
+# (이전과 동일)
 def main():
     st.set_page_config(page_title="세무조사 덱빌딩", layout="wide", initial_sidebar_state="expanded")
     
     if 'game_state' not in st.session_state: 
         st.session_state.game_state = "MAIN_MENU"
 
-    # --- [BUG FIX] ---
-    # 페이지 새로고침 시 세션은 유지되나 변수가 날아가는 경우를 대비
-    # 실행 중 상태(MAP, BATTLE 등)인데 player_team이 없으면 메인으로 보냄
     running_states = ["MAP", "BATTLE", "REWARD", "REWARD_REMOVE"]
     if st.session_state.game_state in running_states and 'player_team' not in st.session_state:
         st.toast("⚠️ 세션이 만료되어 메인 메뉴로 돌아갑니다.")
         st.session_state.game_state = "MAIN_MENU"
-        # st.rerun()을 호출하여 메인 메뉴를 즉시 로드
         st.rerun() 
-    # --- [End of BUG FIX] ---
+        return # [BUG FIX] st.rerun() 후에도 코드 실행을 막기 위해 return 추가
 
     if st.session_state.game_state == "MAIN_MENU": 
         show_main_menu()
