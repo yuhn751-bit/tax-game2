@@ -32,11 +32,12 @@ class TaxManCard(Card):
 
 class LogicCard(Card):
     """과세논리 카드 클래스 (공격 카드)"""
-    def __init__(self, name, description, cost, base_damage, logic_type, text):
+    def __init__(self, name, description, cost, base_damage, logic_type, text, special_effect=None):
         super().__init__(name, description, cost)
         self.base_damage = base_damage # 기본 적출 세액 (백만원 단위)
         self.logic_type = logic_type # '분석력', '설득력', '데이터수집' 등 이 카드가 기반하는 능력치
         self.text = text # 승리 시 얻는 텍스트 ("법인세법 18조를 습득했다!")
+        self.special_effect = special_effect # (신규) 'clarity_plus' 등 특수 효과
 
 class EvasionTactic:
     """탈루 혐의 클래스 (기업의 HP)"""
@@ -66,6 +67,7 @@ class Artifact:
         self.description = description
         self.effect = effect # 'on_battle_start', 'on_turn_start' 등 효과
 
+
 # --- 2. 게임 데이터베이스 (DB) ---
 
 # [조사관 DB] (신규 2명 추가)
@@ -80,10 +82,20 @@ TAX_MAN_DB = {
         description="국제조세의 베테랑. 조세피난처를 이용한 역외탈세 추적의 1인자. 날카로운 분석력으로 허를 찌른다.",
         ability_name="[역외탈세 추적]", ability_desc="'외국계 기업' 상대 시 모든 '과세논리' 카드의 최종 적출세액 +20%."
     ),
+    "baek": TaxManCard(
+        name="백전승", grade="A", position="팀장", cost=0, hp=110, focus=3, analysis=7, persuasion=10, evidence=9, data=7,
+        description="불도저 같은 추진력의 베테랑 팀장. 한번 시작한 조사는 끝을 본다. 그의 설득(압박)에 넘어오지 않는 납세자는 없다.",
+        ability_name="[최종 통보]", ability_desc="'납세자 심문' 카드의 효과가 2배가 된다."
+    ),
     "kim": TaxManCard(
         name="김철두", grade="B", position="조사반장", cost=0, hp=120, focus=3, analysis=6, persuasion=8, evidence=9, data=5,
         description="포기를 모르는 불굴의 현장 조사관. 압수수색 현장에서 비밀장부를 귀신같이 찾아내는 것으로 유명하다.",
-        ability_name="[압수수색]", ability_desc="'조사' 단계(미구현)에서 낮은 확률로 '결정적 증거' 카드를 즉시 획득."
+        ability_name="[압수수색]", ability_desc="'현장 확인' 카드 사용 시 10% 확률로 '결정적 증거(비밀장부)' 카드를 손에 넣는다.(미구현)"
+    ),
+    "oh": TaxManCard(
+        name="오필승", grade="B", position="조사반장", cost=0, hp=140, focus=3, analysis=7, persuasion=6, evidence=7, data=8,
+        description="국세청 전산실(TIS) 출신의 데이터 전문가. 방대한 전산 자료 속에서 바늘 같은 탈루 혐의를 찾아낸다.",
+        ability_name="[데이터 마이닝]", ability_desc="'데이터수집' 기반 카드의 비용이 1 감소한다 (최소 0)."
     ),
     "park": TaxManCard(
         name="박지혜", grade="C", position="일반조사관", cost=0, hp=80, focus=4, analysis=7, persuasion=5, evidence=6, data=7,
@@ -97,12 +109,18 @@ TAX_MAN_DB = {
     )
 }
 
-# [과세논리 카드 DB] (신규 3종 추가)
+# [과세논리 카드 DB] (신규 4종 추가)
 LOGIC_CARD_DB = {
     "c_tier_01": LogicCard(
         name="단순 자료 대사", description="매입/매출 자료를 단순 비교하여 불일치 내역을 찾아냅니다.",
         cost=0, base_damage=3, logic_type="data",
         text="자료 대사의 기본을 익혔다."
+    ),
+    "c_tier_02": LogicCard(
+        name="법령 재검토", description="덱에서 카드 1장을 뽑습니다.",
+        cost=0, base_damage=0, logic_type="analysis",
+        text="관련 법령을 다시 한번 검토했다.",
+        special_effect={"type": "draw", "value": 1}
     ),
     "basic_01": LogicCard(
         name="기본 소득세법 분석", description="가장 기본적인 세법을 적용하여 소득 누락분을 찾아냅니다.",
@@ -129,10 +147,21 @@ LOGIC_CARD_DB = {
         cost=2, base_damage=30, logic_type="data",
         text="FIU 금융정보 분석 기법을 습득했다."
     ),
-    "spec_01": LogicCard(
-        name="관계사 부당 지원 (저가 양수)", description="특수 관계사에게 자산을 시가보다 현저히 낮게 양도한 사실을 밝혀냅니다.",
-        cost=3, base_damage=50, logic_type="data",
-        text="조특법 시행령 30개 조문을 분석했다."
+    "b_tier_02": LogicCard(
+        name="현장 확인", description="조사 현장에 직접 방문하여 장부와 실물을 대조합니다.",
+        cost=2, base_damage=25, logic_type="evidence",
+        text="재고 자산이 장부와 일치하지 않음을 확인했다."
+    ),
+    "b_tier_03": LogicCard(
+        name="납세자 심문", description="대상 혐의의 '명확도'를 10% 높이고, 10의 피해를 줍니다.",
+        cost=2, base_damage=10, logic_type="persuasion",
+        text="대표이사의 모순된 진술을 확보했다.",
+        special_effect={"type": "clarity_plus", "value": 0.1}
+    ),
+    "a_tier_01": LogicCard(
+        name="자금출처조사", description="고액 자산가의 불분명한 자금 출처를 추적하여 증여세를 과세합니다.",
+        cost=3, base_damage=60, logic_type="data",
+        text="수십 개의 차명계좌 흐름을 파악했다."
     ),
     "s_tier_01": LogicCard(
         name="국제거래 과세논리", description="이전가격(TP) 조작, 조세피난처를 이용한 역외탈세를 적발합니다.",
@@ -141,21 +170,31 @@ LOGIC_CARD_DB = {
     ),
 }
 
-# [조사도구 DB]
+# [조사도구 DB] (신규 2종 추가)
 ARTIFACT_DB = {
     "coffee": Artifact(
         name="☕ 믹스 커피 한 박스", 
         description="조사관들의 영원한 친구. 야근의 필수품입니다.",
-        effect={"type": "on_turn_start", "value": 1} # 매 턴 시작 시 집중력 +1
+        effect={"type": "on_turn_start", "value": 1, "subtype": "focus"}
     ),
     "forensic": Artifact(
         name="💻 디지털 포렌식 장비",
         description="삭제된 데이터도 복구해내는 최첨단 장비입니다.",
-        effect={"type": "on_battle_start", "value": 0.2} # 전투 시작 시 모든 '탈루 혐의'의 '명확도' +20%
+        effect={"type": "on_battle_start", "value": 0.2, "subtype": "clarity"}
+    ),
+    "vest": Artifact(
+        name="🛡️ 방탄 조끼",
+        description="악성 민원인의 위협으로부터 몸을 보호합니다. 전투 시작 시 '보호막' 30을 얻습니다.",
+        effect={"type": "on_battle_start", "value": 30, "subtype": "shield"}
+    ),
+    "plan": Artifact(
+        name="📜 완벽한 조사계획서",
+        description="조사 착수 전 완벽한 계획은 승리의 지름길입니다. 첫 턴에 카드를 1장 더 뽑습니다.",
+        effect={"type": "on_battle_start", "value": 1, "subtype": "draw"}
     )
 }
 
-# [기업 DB] (신규 2종 추가, HP 데미지 추가)
+# [기업 DB] (변경 없음)
 COMPANY_DB = [
     Company(
         name="(주)가나다 식품", size="소규모",
@@ -227,10 +266,11 @@ def initialize_game():
     """새 게임 시작 시 st.session_state를 초기화합니다."""
     
     # [플레이어 상태]
-    start_team = [TAX_MAN_DB["han"], TAX_MAN_DB["kim"], TAX_MAN_DB["park"]]
+    # (팀원 변경)
+    start_team = [TAX_MAN_DB["baek"], TAX_MAN_DB["oh"], TAX_MAN_DB["park"]]
     st.session_state.player_team = start_team
     
-    start_deck = [LOGIC_CARD_DB["basic_01"]] * 4 + [LOGIC_CARD_DB["basic_02"]] * 4 + [LOGIC_CARD_DB["c_tier_01"]] * 2
+    start_deck = [LOGIC_CARD_DB["basic_01"]] * 4 + [LOGIC_CARD_DB["basic_02"]] * 4 + [LOGIC_CARD_DB["c_tier_02"]] * 2
     st.session_state.player_deck = random.sample(start_deck, len(start_deck)) # 섞기
     
     st.session_state.player_hand = [] # 현재 손에 쥔 카드
@@ -239,18 +279,21 @@ def initialize_game():
     
     st.session_state.team_max_hp = sum(member.hp for member in start_team)
     st.session_state.team_hp = st.session_state.team_max_hp
+    st.session_state.team_shield = 0 # (신규) 보호막
     
     # [전투 상태]
     st.session_state.player_focus_max = sum(member.focus for member in start_team)
     st.session_state.player_focus_current = st.session_state.player_focus_max
     st.session_state.current_battle_company = None
     st.session_state.battle_log = []
-    st.session_state.selected_card_index = None # (중요) 선택한 카드의 인덱스
+    st.session_state.selected_card_index = None 
+    st.session_state.bonus_draw = 0 # (신규) 첫 턴 보너스 드로우
     
     # [게임 진행 상태]
-    st.session_state.game_state = "MAP" # 'MAIN_MENU', 'MAP', 'BATTLE', 'EVENT', 'REWARD', 'GAME_OVER'
+    st.session_state.game_state = "MAP" 
     st.session_state.current_stage_level = 0
-    st.session_state.total_collected_tax = 0 # 전체 점수
+    st.session_state.total_collected_tax = 0 
+
 
 # --- 4. 게임 로직 함수 ---
 
@@ -261,24 +304,27 @@ def start_player_turn():
     base_focus = sum(member.focus for member in st.session_state.player_team)
     st.session_state.player_focus_current = base_focus
     
-    # '추징수' 능력
     if "추징수" in [m.name for m in st.session_state.player_team]:
         st.session_state.player_focus_current += 1
         log_message("✨ [신속 정확] 효과로 집중력 +1!", "info")
 
-    # 유물 효과 적용 (e.g., 믹스 커피)
     for artifact in st.session_state.player_artifacts:
-        if artifact.effect["type"] == "on_turn_start":
+        if artifact.effect["type"] == "on_turn_start" and artifact.effect["subtype"] == "focus":
             st.session_state.player_focus_current += artifact.effect["value"]
             log_message(f"✨ {artifact.name} 효과로 집중력 +{artifact.effect['value']}!", "info")
             
-    st.session_state.player_focus_max = st.session_state.player_focus_current # 최대치도 업데이트
+    st.session_state.player_focus_max = st.session_state.player_focus_current 
 
-    # 2. 카드 5장 뽑기
-    draw_cards(5)
+    # 2. 카드 뽑기 (보너스 드로우 적용)
+    cards_to_draw = 5 + st.session_state.get('bonus_draw', 0)
+    if st.session_state.get('bonus_draw', 0) > 0:
+        log_message(f"✨ {ARTIFACT_DB['plan'].name} 효과로 카드 {st.session_state.bonus_draw}장 추가 드로우!", "info")
+        st.session_state.bonus_draw = 0 # 1회성
+        
+    draw_cards(cards_to_draw)
     log_message("--- 플레이어 턴 시작 ---")
-    st.session_state.turn_first_card_played = True # '박지혜' 능력 플래그 리셋
-    st.session_state.selected_card_index = None # 카드 선택 초기화
+    st.session_state.turn_first_card_played = True 
+    st.session_state.selected_card_index = None 
 
 def draw_cards(num_to_draw):
     """덱에서 카드를 뽑아 손으로 가져옵니다."""
@@ -297,46 +343,72 @@ def draw_cards(num_to_draw):
         drawn_cards.append(card)
     
     st.session_state.player_hand.extend(drawn_cards)
+    
+    # (신규) '법령 재검토' 같은 드로우 카드 즉시 처리
+    check_draw_cards_in_hand()
+
+
+def check_draw_cards_in_hand():
+    """[신규] 손에 드로우 효과 카드가 있는지 확인하고 즉시 발동"""
+    # (재귀적으로 처리하기 위해 while 사용)
+    while True:
+        card_to_play = None
+        card_index = -1
+        
+        for i, card in enumerate(st.session_state.player_hand):
+            if card.special_effect and card.special_effect.get("type") == "draw":
+                card_to_play = card
+                card_index = i
+                break # 하나씩 처리
+        
+        if card_to_play:
+            log_message(f"✨ [{card_to_play.name}] 효과 발동! 카드 {card_to_play.special_effect.get('value', 0)}장을 뽑습니다.", "info")
+            # 1. 카드를 버린 덱으로
+            st.session_state.player_discard.append(st.session_state.player_hand.pop(card_index))
+            # 2. 카드 뽑기
+            draw_cards(card_to_play.special_effect.get('value', 0))
+        else:
+            break # 뽑을 카드가 없으면 종료
+
 
 def select_card_to_play(card_index):
-    """[신규] 플레이어가 카드를 '선택' (UI에서 호출)"""
+    """플레이어가 카드를 '선택'"""
     if 'player_hand' not in st.session_state or card_index >= len(st.session_state.player_hand):
         st.toast("오류: 유효하지 않은 카드입니다.", icon="🚨")
         return
         
     card = st.session_state.player_hand[card_index]
-    
-    # 1. 예상 비용 계산 (박지혜 능력 포함)
     cost_to_pay = calculate_card_cost(card)
 
-    # 2. 집중력 비용 체크
     if st.session_state.player_focus_current < cost_to_pay:
         st.toast(f"집중력이 부족합니다! (필요: {cost_to_pay})", icon="🧠")
         return
     
-    # 3. 카드를 '선택된' 상태로 변경
     st.session_state.selected_card_index = card_index
-    st.rerun() # 화면을 다시 그려서 '공격 대상' 버튼을 표시하게 함
+    st.rerun() 
 
 def cancel_card_selection():
-    """[신규] 선택한 카드 취소"""
+    """선택한 카드 취소"""
     st.session_state.selected_card_index = None
     st.rerun()
 
 def calculate_card_cost(card):
-    """[신규] 카드의 실제 소모 비용 계산 (박지혜 능력 적용)"""
+    """카드의 실제 소모 비용 계산 (능력 적용)"""
     cost_to_pay = card.cost
-    has_park = "박지혜" in [m.name for m in st.session_state.player_team]
-    is_first_card = st.session_state.get('turn_first_card_played', True)
     
-    if has_park and is_first_card:
-        cost_to_pay = max(0, card.cost - 1)
+    # '오필승' 능력 (데이터 카드)
+    if "오필승" in [m.name for m in st.session_state.player_team] and card.logic_type == "data":
+        cost_to_pay = max(0, cost_to_pay - 1)
+
+    # '박지혜' 능력 (첫 카드)
+    if "박지혜" in [m.name for m in st.session_state.player_team] and st.session_state.get('turn_first_card_played', True):
+        cost_to_pay = max(0, cost_to_pay - 1)
+        
     return cost_to_pay
 
 def execute_attack(card_index, tactic_index):
-    """[신규] 선택한 카드로 선택한 혐의를 '공격 실행'"""
+    """선택한 카드로 선택한 혐의를 '공격 실행'"""
     
-    # 1. 유효성 검사
     if card_index is None or card_index >= len(st.session_state.player_hand) or tactic_index >= len(st.session_state.current_battle_company.tactics):
         st.toast("오류: 공격 실행 중 오류가 발생했습니다.", icon="🚨")
         st.session_state.selected_card_index = None
@@ -352,30 +424,28 @@ def execute_attack(card_index, tactic_index):
 
     if st.session_state.player_focus_current < cost_to_pay:
         st.toast(f"집중력이 부족합니다! (필요: {cost_to_pay})", icon="🧠")
-        st.session_state.selected_card_index = None # 선택 취소
+        st.session_state.selected_card_index = None 
         st.rerun()
         return
         
     st.session_state.player_focus_current -= cost_to_pay
     
-    # '박지혜' 능력 사용 처리
-    if "박지혜" in [m.name for m in st.session_state.player_team] and st.session_state.get('turn_first_card_played', True):
+    if st.session_state.get('turn_first_card_played', True):
         st.session_state.turn_first_card_played = False
 
     # 3. 데미지 계산
     damage = card.base_damage
     
-    # '이신입' 능력
+    # 캐릭터 능력 보너스
     if "이신입" in [m.name for m in st.session_state.player_team] and card.name in ["기본 소득세법 분석", "단순 경비 처리 오류 지적"]:
         damage += 3
         log_message(f"✨ [기본기] 효과로 적출액 +3!", "info")
     
-    # '한중일' 능력
     if "한중일" in [m.name for m in st.session_state.player_team] and company.size == "외국계":
         damage = int(damage * 1.2)
         log_message(f"✨ [역외탈세 추적] 효과로 적출액 +20%!", "info")
 
-    # 혐의 '명확도'에 따른 데미지 보정 (명확도 50% -> 데미지 x1.5)
+    # 혐의 '명확도' 보정
     damage_multiplier = 1.0 + tactic.clarity
     final_damage = int(damage * damage_multiplier)
 
@@ -385,59 +455,68 @@ def execute_attack(card_index, tactic_index):
     
     log_message(f"▶️ [{card.name}] 카드로 [{tactic.name}] 혐의에 {final_damage}백만원 적출!", "success")
     
+    # 5. [신규] 특수 효과 처리
+    if card.special_effect:
+        if card.special_effect.get("type") == "clarity_plus":
+            clarity_bonus = card.special_effect.get("value", 0)
+            
+            # '백전승' 능력
+            if "백전승" in [m.name for m in st.session_state.player_team] and card.name == "납세자 심문":
+                clarity_bonus *= 2
+                log_message("✨ [최종 통보] 효과로 '명확도' 2배 증가!", "info")
+                
+            tactic.clarity = min(1.0, tactic.clarity + clarity_bonus)
+            log_message(f"✨ [{tactic.name}] 혐의의 '명확도'가 {clarity_bonus*100:.0f}% 증가했습니다!", "info")
+
     if tactic.exposed_amount >= tactic.total_amount and not getattr(tactic, 'is_cleared', False):
-        tactic.is_cleared = True # 중복 로그 방지
+        tactic.is_cleared = True 
         log_message(f"🔥 [{tactic.name}] 혐의의 탈루액 전액({tactic.total_amount}백만원)을 적발했습니다!", "warning")
         
-        # 현실감 있는 로그 추가
         if "벤츠" in card.text: log_message("💬 [현장] '법인소유 벤츠S클래스 차량을 발견했다!'", "info")
         if "비밀장부" in card.text: log_message("💬 [현장] '압수수색 중 사무실 책상 밑에서 비밀장부를 확보했다!'", "info")
 
-
-    # 5. 카드 이동 (손 -> 버린 덱)
     st.session_state.player_discard.append(st.session_state.player_hand.pop(card_index))
-    
-    # 6. 카드 선택 해제
     st.session_state.selected_card_index = None
     
-    # 7. 승리/패배 체크
     check_battle_end()
-    
-    st.rerun() # 공격 후 화면 즉시 새로고침
+    st.rerun() 
 
 def end_player_turn():
     """플레이어 턴 종료 처리"""
-    # 1. 손에 남은 카드 모두 버리기
     st.session_state.player_discard.extend(st.session_state.player_hand)
     st.session_state.player_hand = []
-    st.session_state.selected_card_index = None # 카드 선택 초기화
+    st.session_state.selected_card_index = None 
     
     log_message("--- 기업 턴 시작 ---")
     
-    # 2. 기업 턴 실행
     enemy_turn()
 
-    # 3. 승리/패배 체크
     if not check_battle_end():
-        # 전투가 안 끝났으면 플레이어 턴 시작
         start_player_turn()
-        st.rerun() # 턴 변경 시 새로고침
+        st.rerun() 
 
 def enemy_turn():
-    """기업(적)의 턴 로직"""
+    """기업(적)의 턴 로직 (보호막 시스템 추가)"""
     company = st.session_state.current_battle_company
     
-    # 1. 방어 행동 (랜덤)
     action_desc = random.choice(company.defense_actions)
     
-    # 2. 팀 체력 데미지
     min_dmg, max_dmg = company.team_hp_damage
     damage = random.randint(min_dmg, max_dmg)
-    st.session_state.team_hp -= damage
     
-    log_message(f"◀️ [기업] {action_desc} (팀 체력 -{damage}!)", "error")
+    # (신규) 보호막 로직
+    damage_to_shield = min(st.session_state.get('team_shield', 0), damage)
+    damage_to_hp = damage - damage_to_shield
+    
+    st.session_state.team_shield -= damage_to_shield
+    st.session_state.team_hp -= damage_to_hp
+    
+    if damage_to_shield > 0:
+        log_message(f"◀️ [기업] {action_desc} (보호막 -{damage_to_shield}, 팀 체력 -{damage_to_hp}!)", "error")
+    else:
+        log_message(f"◀️ [기업] {action_desc} (팀 체력 -{damage}!)", "error")
 
-    # 현실감 있는 로그 추가
+
     if company.size == "중견기업" and random.random() < 0.3:
         log_message("💬 [기업] '조사대상 법인은 접대비로 100억원을 지출했으나 증빙을 제시하지 않고있습니다.'", "info")
     if company.size == "대기업" and random.random() < 0.2:
@@ -447,7 +526,6 @@ def check_battle_end():
     """전투 승리 또는 패배 조건을 확인합니다."""
     company = st.session_state.current_battle_company
 
-    # 1. 승리 조건: 목표 세액 달성
     if company.current_collected_tax >= company.tax_target:
         bonus = company.current_collected_tax - company.tax_target
         log_message(f"🎉 [조사 승리] 목표 세액 {company.tax_target}백만원 달성!", "success")
@@ -462,7 +540,6 @@ def check_battle_end():
             
         return True
 
-    # 2. 패배 조건: 팀 체력 0
     if st.session_state.team_hp <= 0:
         st.session_state.team_hp = 0
         log_message("‼️ [조사 중단] 팀원들이 모두 지쳐 더 이상 조사를 진행할 수 없습니다...", "error")
@@ -472,23 +549,31 @@ def check_battle_end():
     return False
 
 def start_battle(company_template):
-    """전투 시작"""
-    # (중요) DB 원본이 아닌 복사본으로 전투를 시작해야 함
+    """전투 시작 (유물 로직 강화)"""
     company = copy.deepcopy(company_template) 
     
     st.session_state.current_battle_company = company
     st.session_state.game_state = "BATTLE"
     st.session_state.battle_log = [f"--- {company.name} ({company.size}) 세무조사 시작 ---"]
     
-    # 유물 효과 적용
+    # (신규) 전투 시작 유물 효과 초기화
+    st.session_state.team_shield = 0
+    st.session_state.bonus_draw = 0
+
     for artifact in st.session_state.player_artifacts:
         if artifact.effect["type"] == "on_battle_start":
-            clarity_bonus = artifact.effect["value"]
-            log_message(f"✨ {artifact.name} 효과로 모든 '탈루 혐의' 명확도 +{clarity_bonus*100:.0f}%!", "info")
-            for tactic in company.tactics:
-                tactic.clarity = min(1.0, tactic.clarity + clarity_bonus)
+            if artifact.effect["subtype"] == "clarity":
+                clarity_bonus = artifact.effect["value"]
+                log_message(f"✨ {artifact.name} 효과로 모든 '탈루 혐의' 명확도 +{clarity_bonus*100:.0f}%!", "info")
+                for tactic in company.tactics:
+                    tactic.clarity = min(1.0, tactic.clarity + clarity_bonus)
+            elif artifact.effect["subtype"] == "shield":
+                shield_gain = artifact.effect["value"]
+                st.session_state.team_shield += shield_gain
+                log_message(f"✨ {artifact.name} 효과로 '보호막' {shield_gain} 획득!", "info")
+            elif artifact.effect["subtype"] == "draw":
+                st.session_state.bonus_draw += artifact.effect["value"]
 
-    # 덱 초기화 (버린 덱 -> 덱 -> 섞기)
     st.session_state.player_deck.extend(st.session_state.player_discard)
     st.session_state.player_deck = random.sample(st.session_state.player_deck, len(st.session_state.player_deck))
     st.session_state.player_discard = []
@@ -516,14 +601,15 @@ def log_message(message, level="normal"):
 # --- 5. UI 화면 함수 ---
 
 def show_main_menu():
-    """메인 메뉴 화면 (UI 개선)"""
+    """메인 메뉴 화면 (경고 수정)"""
     st.title("💼 세무조사: 덱빌딩 로그라이크")
     st.markdown("---")
     st.header("국세청에 오신 것을 환영합니다.")
     st.write("당신은 오늘부로 세무조사팀에 발령받았습니다. 기업들의 교묘한 탈루 혐의를 밝혀내고, 공정한 과세를 실현하십시오.")
 
+    # [수정] use_column_width -> use_container_width
     st.image("https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?ixlib=rb-4.0.3&q=80&w=1080", 
-             caption="국세청 조사국의 풍경 (상상도)", use_column_width=True)
+             caption="국세청 조사국의 풍경 (상상도)", use_container_width=True)
 
     if st.button("🚨 조사 시작 (신규 게임)", type="primary", use_container_width=True):
         initialize_game()
@@ -537,6 +623,7 @@ def show_main_menu():
         
         **2. ⚔️ 전투 (조사) 방식**
         - **❤️ 팀 체력:** 우리 팀의 생명력입니다. 기업의 '반격'에 의해 감소하며, 0이 되면 패배합니다.
+        - **🛡️ 팀 보호막:** (신규) 체력보다 먼저 소모되는 임시 HP입니다. 매 전투마다 초기화됩니다.
         - **🧠 집중력:** 매 턴마다 주어지는 자원입니다. '과세논리' 카드를 사용하려면 집중력이 필요합니다.
         - **🃏 과세논리 카드:** 당신의 공격 수단입니다. 카드를 내면 '적출 세액'이 누적됩니다.
         - **🧾 탈루 혐의:** 기업의 HP입니다. 각 혐의마다 '총 탈루액'이 정해져 있습니다.
@@ -550,7 +637,7 @@ def show_main_menu():
             3. 집중력이 소모되고, 기업의 '현재 적출 세액'이 오릅니다.
             4. (선택 취소: '❌ 공격 취소' 버튼을 누르면 카드가 패로 돌아옵니다.)
             5. 더 이상 낼 카드가 없으면 **[➡️ 턴 종료]** 버튼을 누릅니다.
-            6. 기업이 반격하여 '팀 체력'이 감소합니다.
+            6. 기업이 반격하여 '보호막'이나 '팀 체력'이 감소합니다.
             7. 다시 당신의 턴이 돌아옵니다. (새 카드 5장, 집중력 회복)
         
         **4. 🚀 성장**
@@ -559,7 +646,7 @@ def show_main_menu():
         """)
 
 def show_map_screen():
-    """맵 선택 화면"""
+    """맵 선택 화면 (버그 수정)"""
     st.header(f"📍 조사 지역 (Stage {st.session_state.current_stage_level + 1})")
     st.write("조사할 기업을 선택하십시오.")
     
@@ -582,10 +669,12 @@ def show_map_screen():
             st.session_state.game_state = "MAIN_MENU"
             st.rerun()
 
-    show_player_status_sidebar() # 맵에서도 사이드바 표시
+    # [수정] 중복 호출되던 사이드바 함수 제거
+    # show_player_status_sidebar() <- 이 라인을 삭제!
+
 
 def show_battle_screen():
-    """핵심 전투 화면 (UI 대폭 개선)"""
+    """핵심 전투 화면 (보호막 UI 추가)"""
     if not st.session_state.current_battle_company:
         st.error("오류: 조사 대상 기업 정보가 없습니다.")
         st.session_state.game_state = "MAP"
@@ -605,13 +694,16 @@ def show_battle_screen():
         
         st.metric(label="❤️ 팀 체력", 
                   value=f"{st.session_state.team_hp} / {st.session_state.team_max_hp}")
+        
+        # (신규) 보호막 표시
+        st.metric(label="🛡️ 팀 보호막", 
+                  value=f"{st.session_state.get('team_shield', 0)}")
 
         st.metric(label="🧠 현재 집중력", 
                   value=f"{st.session_state.player_focus_current} / {st.session_state.player_focus_max}")
         
         st.markdown("---")
         
-        # 팀원 목록
         for member in st.session_state.player_team:
             with st.expander(f"**{member.name}** ({member.position} / {member.grade}급)"):
                 st.write(f"HP: {member.hp}/{member.max_hp}")
@@ -638,7 +730,6 @@ def show_battle_screen():
         
         st.subheader("🧾 탈루 혐의 목록")
         
-        # [신규] 카드 선택 시 공격 버튼 표시
         is_card_selected = st.session_state.get("selected_card_index") is not None
         if is_card_selected:
             selected_card_name = st.session_state.player_hand[st.session_state.selected_card_index].name
@@ -651,7 +742,12 @@ def show_battle_screen():
             tactic_cleared = tactic.exposed_amount >= tactic.total_amount
             
             with st.container(border=True):
-                st.markdown(f"**{tactic.name}** (🔎 명확도: {tactic.clarity*100:.0f}%)")
+                # (개선) 명확도 100%일 때 강조
+                clarity_text = f"🔎 명확도: {tactic.clarity*100:.0f}%"
+                if tactic.clarity >= 1.0:
+                    clarity_text = f"🔥 {clarity_text} (최대!)"
+                
+                st.markdown(f"**{tactic.name}** ({clarity_text})")
                 st.caption(f"_{tactic.description}_")
                 
                 if tactic_cleared:
@@ -660,11 +756,9 @@ def show_battle_screen():
                     st.progress(min(1.0, tactic.exposed_amount / tactic.total_amount),
                                 text=f"적발액: {tactic.exposed_amount} / {tactic.total_amount} (백만원)")
                 
-                # [신규] 공격 대상 선택 버튼
                 if is_card_selected and not tactic_cleared:
                     if st.button(f"🎯 **{tactic.name}** 공격", key=f"attack_tactic_{i}", use_container_width=True):
                         execute_attack(st.session_state.selected_card_index, i)
-                        # execute_attack 함수 내부에서 rerun 하므로 여기서는 필요 없음
 
         st.markdown("---")
 
@@ -678,18 +772,15 @@ def show_battle_screen():
         st.subheader("🕹️ 행동")
         
         if st.session_state.get("selected_card_index") is not None:
-             # [신규] 공격 취소 버튼
             if st.button("❌ 공격 취소", use_container_width=True, type="secondary"):
                 cancel_card_selection()
         else:
-            # 턴 종료 버튼
             if st.button("➡️ 턴 종료", use_container_width=True, type="primary"):
                 end_player_turn()
                 st.rerun() 
 
         st.markdown("---")
 
-        # [신규] 탭으로 손/덱 분리
         tab1, tab2 = st.tabs(["🃏 내 손 안의 카드", f"📚 덱({len(st.session_state.player_deck)})/버린 덱({len(st.session_state.player_discard)})"])
 
         with tab1:
@@ -699,6 +790,10 @@ def show_battle_screen():
             is_card_selected = st.session_state.get("selected_card_index") is not None
 
             for i, card in enumerate(st.session_state.player_hand):
+                # (수정) 0코스트 드로우 카드는 표시하지 않음
+                if card.special_effect and card.special_effect.get("type") == "draw":
+                    continue
+
                 cost_to_pay = calculate_card_cost(card)
                 can_afford = st.session_state.player_focus_current >= cost_to_pay
                 card_color = "blue" if can_afford else "red"
@@ -715,9 +810,13 @@ def show_battle_screen():
                     st.write(card.description)
                     st.write(f"**기본 적출액:** {card.base_damage} 백만원")
                     
+                    if card.special_effect:
+                         if card.special_effect.get("type") == "clarity_plus":
+                            st.write(f"**특수효과:** 명확도 +{card.special_effect.get('value')*100:.0f}%")
+                    
                     if st.button(f"선택하기: {card.name}", key=f"play_card_{i}", 
                                 use_container_width=True, 
-                                disabled=(not can_afford or is_card_selected)): # 비용이 모자라거나, 다른 카드가 이미 선택됨
+                                disabled=(not can_afford or is_card_selected)):
                         select_card_to_play(i)
         
         with tab2:
@@ -725,14 +824,14 @@ def show_battle_screen():
                 card_counts = {}
                 for card in st.session_state.player_deck:
                     card_counts[card.name] = card_counts.get(card.name, 0) + 1
-                for name, count in card_counts.items():
-                    st.write(f"- {name} x {count}")
+                for name in sorted(card_counts.keys()):
+                    st.write(f"- {name} x {card_counts[name]}")
             with st.expander("🗑️ 버린 덱 보기"):
                 card_counts = {}
                 for card in st.session_state.player_discard:
                     card_counts[card.name] = card_counts.get(card.name, 0) + 1
-                for name, count in card_counts.items():
-                    st.write(f"- {name} x {count}")
+                for name in sorted(card_counts.keys()):
+                    st.write(f"- {name} x {card_counts[name]}")
 
 
 def show_reward_screen():
@@ -747,9 +846,8 @@ def show_reward_screen():
     st.subheader("🎁 보상을 선택하세요 (카드 3장 중 1개)")
 
     if 'reward_cards' not in st.session_state or not st.session_state.reward_cards:
-        # (개선) C급부터 S급까지 골고루 나오도록 가중치 조절
         all_cards = list(LOGIC_CARD_DB.values())
-        reward_pool = [c for c in all_cards if c.cost > 0] # 0코스트 C급 카드 제외
+        reward_pool = [c for c in all_cards if c.cost > 0] # 0코스트 카드 제외
         st.session_state.reward_cards = random.sample(reward_pool, min(len(reward_pool), 3))
 
     cols = st.columns(len(st.session_state.reward_cards))
@@ -761,6 +859,9 @@ def show_reward_screen():
                 st.caption(f"({card.logic_type} 기반)")
                 st.write(card.description)
                 st.info(f"**기본 적출액:** {card.base_damage} 백만원")
+                if card.special_effect:
+                    if card.special_effect.get("type") == "clarity_plus":
+                        st.warning(f"**특수효과:** 명확도 +{card.special_effect.get('value')*100:.0f}%")
                 
                 if st.button(f"선택: {card.name}", key=f"reward_{i}", use_container_width=True, type="primary"):
                     st.session_state.player_deck.append(card)
@@ -770,36 +871,39 @@ def show_reward_screen():
                     st.session_state.game_state = "MAP"
                     st.session_state.current_stage_level += 1
                     
-                    # (신규) 다음 스테이지 진입 시 체력 회복
-                    heal_amount = int(st.session_state.team_max_hp * 0.3) # 최대 체력의 30% 회복
+                    heal_amount = int(st.session_state.team_max_hp * 0.3) 
                     st.session_state.team_hp = min(st.session_state.team_max_hp, st.session_state.team_hp + heal_amount)
                     st.toast(f"팀원들이 휴식을 취했습니다. (체력 +{heal_amount})", icon="❤️")
                     
                     st.rerun()
-    
-    # TODO: '조사도구' 보상 추가
 
 def show_game_over_screen():
-    """[신규] 게임 오버 화면"""
+    """게임 오버 화면 (경고 수정)"""
     st.header("... 조사가 중단되었습니다 ...")
     st.error("팀원들의 체력이 모두 소진되어 더 이상 조사를 진행할 수 없습니다.")
     
     st.metric("최종 총 추징 세액", f"💰 {st.session_state.total_collected_tax} 백만원")
     st.metric("진행한 스테이지", f"📍 {st.session_state.current_stage_level + 1}")
     
+    # [수정] use_column_width -> use_container_width
     st.image("https://images.unsplash.com/photo-1554224155-16954a151120?ixlib=rb-4.0.3&q=80&w=1080", 
-             caption="지친 조사관들...", use_column_width=True)
+             caption="지친 조사관들...", use_container_width=True)
 
     if st.button("다시 도전하기", type="primary", use_container_width=True):
         st.session_state.game_state = "MAIN_MENU"
         st.rerun()
 
 def show_player_status_sidebar():
-    """모든 화면 좌측에 표시될 플레이어 상태 사이드바 (UI 개선)"""
+    """플레이어 상태 사이드바 (보호막 UI 추가)"""
     with st.sidebar:
         st.title("👨‍💼 조사팀 현황")
         st.metric("💰 현재까지 총 추징 세액", f"{st.session_state.total_collected_tax} 백만원")
         st.metric("❤️ 현재 팀 체력", f"{st.session_state.team_hp} / {st.session_state.team_max_hp}")
+        
+        # (신규) 전투 중에만 보호막 표시
+        if st.session_state.game_state == "BATTLE":
+            st.metric("🛡️ 현재 팀 보호막", f"{st.session_state.get('team_shield', 0)}")
+            
         st.markdown("---")
         
         st.subheader("팀원")
@@ -814,7 +918,6 @@ def show_player_status_sidebar():
             card_counts = {}
             for card in deck_list:
                 card_counts[card.name] = card_counts.get(card.name, 0) + 1
-            # 이름순으로 정렬
             for name in sorted(card_counts.keys()):
                 st.write(f"- {name} x {card_counts[name]}")
 
@@ -854,7 +957,7 @@ def main():
     elif st.session_state.game_state == "GAME_OVER":
         show_game_over_screen()
 
-    # 사이드바는 '메인 메뉴' 아닐 때 항상 표시
+    # [수정] 사이드바 호출을 이 곳으로 일원화 (버그 수정)
     if st.session_state.game_state not in ["MAIN_MENU", "GAME_OVER"]:
         show_player_status_sidebar()
 
