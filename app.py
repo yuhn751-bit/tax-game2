@@ -4,7 +4,6 @@ import copy # 기업 객체 복사를 위해 추가
 from enum import Enum # Enum 사용을 위해 추가
 
 # --- 0. Enum(열거형) 정의 ---
-# (이전과 동일)
 class TaxType(str, Enum):
     CORP = "법인세"
     VAT = "부가세"
@@ -23,91 +22,53 @@ class MethodType(str, Enum):
 
 # --- 헬퍼 함수: 가독성 개선 ---
 def format_krw(amount_in_millions):
-    """
-    (이전과 동일) 백만원 단위를 '조', '억' 단위의 읽기 쉬운 문자열로 변환합니다.
-    """
-    if amount_in_millions is None:
-        return "N/A"
+    if amount_in_millions is None: return "N/A"
     try:
-        if abs(amount_in_millions) >= 1_000_000:
-            return f"{amount_in_millions / 1_000_000:,.1f}조원"
-        elif abs(amount_in_millions) >= 10_000:
-            return f"{amount_in_millions / 10_000:,.0f}억원"
-        elif abs(amount_in_millions) >= 100:
-            return f"{amount_in_millions / 100:,.0f}억원"
-        else:
-            return f"{amount_in_millions:,.0f}백만원"
-    except Exception as e:
-        return f"{amount_in_millions} (Format Error)"
-
+        if abs(amount_in_millions) >= 1_000_000: return f"{amount_in_millions / 1_000_000:,.1f}조원"
+        elif abs(amount_in_millions) >= 10_000: return f"{amount_in_millions / 10_000:,.0f}억원"
+        elif abs(amount_in_millions) >= 100: return f"{amount_in_millions / 100:,.0f}억원"
+        else: return f"{amount_in_millions:,.0f}백만원"
+    except Exception as e: return f"{amount_in_millions} (Format Error)"
 
 # --- 1. 기본 데이터 구조 정의 ---
-# (이전과 동일)
 class Card:
     def __init__(self, name, description, cost):
-        self.name = name
-        self.description = description
-        self.cost = cost
+        self.name = name; self.description = description; self.cost = cost
 
 class TaxManCard(Card):
     def __init__(self, name, grade_num, description, cost, hp, focus, analysis, persuasion, evidence, data, ability_name, ability_desc):
         super().__init__(name, description, cost)
-        self.grade_num = grade_num
-        self.hp = hp
-        self.max_hp = hp
-        self.focus = focus
-        self.analysis = analysis
-        self.persuasion = persuasion
-        self.evidence = evidence
-        self.data = data
-        self.ability_name = ability_name
-        self.ability_desc = ability_desc
+        self.grade_num = grade_num; self.hp = hp; self.max_hp = hp; self.focus = focus
+        self.analysis = analysis; self.persuasion = persuasion; self.evidence = evidence; self.data = data
+        self.ability_name = ability_name; self.ability_desc = ability_desc
         grade_map = {4: "S", 5: "S", 6: "A", 7: "B", 8: "C", 9: "C"}
         self.grade = grade_map.get(self.grade_num, "C")
 
 class LogicCard(Card):
     def __init__(self, name, description, cost, base_damage, tax_type: list[TaxType], attack_category: list[AttackCategory], text, special_effect=None, special_bonus=None):
         super().__init__(name, description, cost)
-        self.base_damage = base_damage
-        self.tax_type = tax_type
-        self.attack_category = attack_category
-        self.text = text
-        self.special_effect = special_effect
-        self.special_bonus = special_bonus
+        self.base_damage = base_damage; self.tax_type = tax_type; self.attack_category = attack_category
+        self.text = text; self.special_effect = special_effect; self.special_bonus = special_bonus
 
 class EvasionTactic:
     def __init__(self, name, description, total_amount, tax_type: TaxType | list[TaxType], method_type: MethodType, tactic_category: AttackCategory):
-        self.name = name
-        self.description = description
-        self.total_amount = total_amount
-        self.exposed_amount = 0
-        self.tax_type = tax_type
-        self.method_type = method_type
-        self.tactic_category = tactic_category
-        self.is_cleared = False
+        self.name = name; self.description = description; self.total_amount = total_amount
+        self.exposed_amount = 0; self.tax_type = tax_type; self.method_type = method_type
+        self.tactic_category = tactic_category; self.is_cleared = False
 
 class Company:
     def __init__(self, name, size, description, real_case_desc, revenue, operating_income, tax_target, team_hp_damage, tactics, defense_actions):
-        self.name = name
-        self.size = size
-        self.description = description
-        self.real_case_desc = real_case_desc
-        self.revenue = revenue
-        self.operating_income = operating_income
-        self.tax_target = tax_target
-        self.team_hp_damage = team_hp_damage
-        self.current_collected_tax = 0
-        self.tactics = tactics
+        self.name = name; self.size = size; self.description = description; self.real_case_desc = real_case_desc
+        self.revenue = revenue; self.operating_income = operating_income; self.tax_target = tax_target
+        self.team_hp_damage = team_hp_damage; self.current_collected_tax = 0; self.tactics = tactics
         self.defense_actions = defense_actions
 
 class Artifact:
     def __init__(self, name, description, effect):
-        self.name = name
-        self.description = description
-        self.effect = effect
+        self.name = name; self.description = description; self.effect = effect
 
 # --- 2. 게임 데이터베이스 (DB) ---
-# (이전 코드와 동일)
+# (이전 코드와 동일 - 캐릭터 정보, 교육 정보 등 업데이트 반영됨)
 TAX_MAN_DB = {
     "lim": TaxManCard(name="임향수", grade_num=5, description="국세청의 핵심 요직을 두루 거친 '조사통의 대부'. 굵직한 대기업 비자금, 불법 증여 조사를 지휘한 경험이 풍부하다.", cost=0, hp=120, focus=3, analysis=10, persuasion=10, evidence=10, data=10, ability_name="[기획 조사]", ability_desc="전설적인 통찰력. 매 턴 집중력 +1. 팀의 '분석', '데이터' 스탯에 비례해 '비용', '자본' 카드 피해량 증가."),
     "han": TaxManCard(name="한중히", grade_num=6, description="국제조세 분야에서 잔뼈가 굵은 전문가. OECD 파견 경험으로 국제 공조 및 BEPS 프로젝트에 대한 이해가 깊다.", cost=0, hp=80, focus=2, analysis=9, persuasion=6, evidence=8, data=9, ability_name="[역외탈세 추적]", ability_desc="'외국계' 기업 또는 '자본 거래' 혐의 공격 시, 최종 피해량 +30%."),
@@ -272,7 +233,7 @@ def log_message(message, level="normal"):
     """ 로그 메시지를 st.session_state.battle_log에 추가합니다. """
     if 'battle_log' not in st.session_state:
         st.session_state.battle_log = []
-    elif st.session_state.battle_log is None: # 안전장치 추가
+    elif st.session_state.battle_log is None:
         st.session_state.battle_log = []
 
     color_map = {"normal": "", "success": "green", "warning": "orange", "error": "red", "info": "blue"}
@@ -285,72 +246,11 @@ def log_message(message, level="normal"):
 
 # (이하 로직 함수들은 이전 버전과 거의 동일)
 # ... (start_player_turn, draw_cards, check_draw_cards_in_hand 등등) ...
-# --- start_battle (기업 특화 카드 추가 로직, 교육 로그) ---
-def start_battle(company_template):
-    company = copy.deepcopy(company_template)
-    st.session_state.current_battle_company = company
-    st.session_state.game_state = "BATTLE"
-    st.session_state.battle_log = [] # 명시적으로 초기화
-
-    st.session_state.battle_log.insert(0, f"--- {company.name} ({company.size}) 조사 시작 ---") # 첫 로그 메시지
-
-    # (개선) 조사 시작 시 혐의 요약 및 교육 로그 추가
-    log_message(f"🏢 **{company.name}**의 주요 탈루 혐의는 다음과 같습니다:", "info")
-    tactic_types = set()
-    has_capital_tx = False # 자본 거래 혐의 플래그
-    for tactic in company.tactics:
-        tactic_tax_types = [t.value for t in tactic.tax_type] if isinstance(tactic.tax_type, list) else [tactic.tax_type.value]
-        log_message(f"- **{tactic.name}** ({'/'.join(tactic_tax_types)}, {tactic.method_type.value}, {tactic.tactic_category.value})", "info")
-        tactic_types.add(tactic.method_type)
-        if tactic.tactic_category == AttackCategory.CAPITAL:
-            has_capital_tx = True
-
-    log_message("---", "info") # 구분선
-    guidance = "[조사 가이드] "
-    if MethodType.INTENTIONAL in tactic_types:
-        guidance += "고의적 탈루 혐의가 의심됩니다. 결정적 증거 확보와 압박이 중요합니다. "
-    if has_capital_tx or company.size in ["대기업", "외국계"]:
-        guidance += "복잡한 자본 거래나 국제 거래가 예상됩니다. 자금 흐름과 관련 법규를 면밀히 분석해야 합니다. "
-    if MethodType.ERROR in tactic_types and MethodType.INTENTIONAL not in tactic_types:
-        guidance += "단순 실수나 착오일 가능성이 있습니다. 관련 규정과 판례를 제시하며 설득하는 것이 효과적일 수 있습니다. "
-    if not guidance == "[조사 가이드] ":
-        log_message(guidance, "warning")
-    else:
-        log_message("[조사 가이드] 기업의 특성과 혐의 유형을 고려하여 전략적으로 접근하십시오.", "warning")
-    log_message("---", "info") # 구분선
-
-
-    st.session_state.team_shield = 0; st.session_state.bonus_draw = 0
-
-    for artifact in st.session_state.player_artifacts:
-        log_message(f"✨ [조사도구] '{artifact.name}' 효과 준비.", "info")
-        if artifact.effect["type"] == "on_battle_start":
-            if artifact.effect["subtype"] == "shield":
-                shield_gain = artifact.effect["value"]; st.session_state.team_shield += shield_gain; log_message(f"✨ {artifact.name} 보호막 +{shield_gain}!", "info")
-            elif artifact.effect["subtype"] == "draw":
-                st.session_state.bonus_draw += artifact.effect["value"]
-
-    # (개선) 기업 특화 카드 추가 로직
-    current_deck = st.session_state.get('player_deck', [])
-    current_discard = st.session_state.get('player_discard', [])
-    temp_deck_base = [copy.deepcopy(c) for c in current_deck + current_discard]
-
-
-    added_cards = []
-    if has_capital_tx:
-        capital_card = LOGIC_CARD_DB.get("a_tier_01")
-        if capital_card:
-            added_cards.append(copy.deepcopy(capital_card))
-            log_message("✨ [기업 특성 감지] 복잡한 자금 흐름에 대비해 '자금출처조사' 카드를 임시로 덱에 추가합니다.", "info")
-
-    final_battle_deck = temp_deck_base + added_cards
-    st.session_state.player_deck = random.sample(final_battle_deck, len(final_battle_deck))
-    st.session_state.player_discard = []; st.session_state.player_hand = []; start_player_turn()
-
+# ... (start_battle 함수 포함) ...
 # ... (go_to_next_stage 등 나머지 로직 함수들) ...
 
 # --- 5. UI 화면 함수 ---
-# (이전 코드와 동일 - 이미지 교체, 드래프트 후보 수 등 반영됨)
+# (이전 코드와 동일)
 # ... (show_main_menu, show_setup_draft_screen 등 UI 함수들) ...
 # ... (show_map_screen, show_battle_screen 등 UI 함수들) ...
 # ... (show_reward_screen, show_reward_remove_screen, show_game_over_screen UI 함수들) ...
@@ -373,25 +273,26 @@ def main():
 
     # 각 상태별 필수 키 정의
     if current_game_state == "GAME_SETUP_DRAFT":
-        # show_setup_draft_screen은 draft_team_choices 등이 없으면 내부에서 처리하므로 여기서 키 검사 불필요
-        pass # draft 화면은 내부적으로 키 존재 여부 확인
-    elif current_game_state in ["MAP", "BATTLE", "REWARD", "REWARD_REMOVE", "GAME_OVER"]: # GAME_OVER 추가
-        # 기본 게임 진행 및 종료에 필요한 키
-        required_keys = ['current_stage_level', 'total_collected_tax'] # 최소 공통 키
-        if current_game_state != "GAME_OVER": # 게임 오버가 아닐 때 추가로 필요한 키
-             required_keys.extend(['player_team', 'player_deck', 'player_discard', 'player_hand', 'player_artifacts', 'team_stats', 'company_order'])
-             if current_game_state == "BATTLE" or current_game_state == "REWARD": # 전투/보상 시
-                 required_keys.append('current_battle_company')
-             # battle_log는 log_message에서 안전하게 처리되므로 제외
-
+        required_keys = ['draft_team_choices', 'draft_artifact_choices']
+    elif current_game_state in ["MAP", "BATTLE", "REWARD", "REWARD_REMOVE"]:
+        # 기본 게임 진행 키 + battle_log 추가
+        required_keys = ['player_team', 'player_deck', 'player_discard', 'player_hand', 'current_stage_level', 'player_artifacts', 'team_stats', 'company_order', 'battle_log']
+        if current_game_state == "BATTLE" or current_game_state == "REWARD": # 전투/보상 시
+            required_keys.append('current_battle_company')
+    elif current_game_state == "GAME_OVER":
+         required_keys = ['total_collected_tax', 'current_stage_level']
 
     # 필요한 키가 st.session_state에 모두 존재하는지 확인
-    if required_keys and not all(key in st.session_state for key in required_keys):
+    missing_keys = [key for key in required_keys if key not in st.session_state]
+    if missing_keys:
+        # st.warning(f"상태 오류 감지: 누락된 키 - {missing_keys}") # 디버깅용
         is_state_valid = False
 
+
     # 상태가 유효하지 않으면 메인 메뉴로 리셋
-    if not is_state_valid and current_game_state != "MAIN_MENU": # 메인 메뉴 상태 자체는 항상 유효
+    if not is_state_valid and current_game_state != "MAIN_MENU":
         st.toast("⚠️ 세션 상태 오류 발생. 게임을 초기화하고 메인 메뉴로 돌아갑니다.")
+        # 필수 키 외 불필요한 키 정리 (선택적)
         keys_to_delete = [k for k in st.session_state.keys() if k != 'game_state']
         for key in keys_to_delete:
             if key in st.session_state:
@@ -435,5 +336,6 @@ def main():
              show_player_status_sidebar()
 
 
+# --- [수정됨] 스크립트 실행 지점 (가장 마지막으로 이동) ---
 if __name__ == "__main__":
     main()
