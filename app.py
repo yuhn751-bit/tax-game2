@@ -37,7 +37,7 @@ def format_krw(amount_in_millions):
             return f"{amount_in_millions / 10_000:,.0f}억원"
         # 1억 (100 백만원) 이상
         elif abs(amount_in_millions) >= 100:
-            return f"{amount_in_millions / 100:,.0f}억원" # 이전 오류 수정됨
+            return f"{amount_in_millions / 100:,.0f}억원"
         # 1억 미만은 백만원 단위로
         else:
             return f"{amount_in_millions:,.0f}백만원"
@@ -56,7 +56,7 @@ class Card:
 class TaxManCard(Card):
     def __init__(self, name, grade_num, description, cost, hp, focus, analysis, persuasion, evidence, data, ability_name, ability_desc):
         super().__init__(name, description, cost)
-        self.grade_num = grade_num # (개선) 등급 조정됨
+        self.grade_num = grade_num
         self.hp = hp
         self.max_hp = hp
         self.focus = focus
@@ -95,7 +95,7 @@ class Company:
         self.name = name
         self.size = size
         self.description = description
-        self.real_case_desc = real_case_desc # (개선) 교육 정보 가독성 개선됨
+        self.real_case_desc = real_case_desc
         self.revenue = revenue
         self.operating_income = operating_income
         self.tax_target = tax_target
@@ -112,7 +112,7 @@ class Artifact:
 
 # --- 2. 게임 데이터베이스 (DB) ---
 
-# --- [수정됨] 조사관 DB (상태 정보 제거, 등급 조정) ---
+# --- [수정됨] 조사관 DB (유재준 등급 상향) ---
 TAX_MAN_DB = {
     # 기존 인물 (상태 정보 제거, 등급 조정)
     "lim": TaxManCard(name="임향수", grade_num=5, description="국세청의 핵심 요직을 두루 거친 '조사통의 대부'. 굵직한 대기업 비자금, 불법 증여 조사를 지휘한 경험이 풍부하다.", cost=0, hp=120, focus=3, analysis=10, persuasion=10, evidence=10, data=10, ability_name="[기획 조사]", ability_desc="전설적인 통찰력. 매 턴 집중력 +1. 팀의 '분석', '데이터' 스탯에 비례해 '비용', '자본' 카드 피해량 증가."),
@@ -127,11 +127,10 @@ TAX_MAN_DB = {
     "park": TaxManCard(name="박지연", grade_num=8, description="세무사/CPA 동시 합격 후 특채 입직. 방대한 세법 지식을 바탕으로 날카로운 법리 검토 능력을 보여주는 '세법 신동'.", cost=0, hp=70, focus=3, analysis=7, persuasion=5, evidence=6, data=7, ability_name="[법리 검토]", ability_desc="턴마다 처음 사용하는 '분석' 또는 '설득' 유형 카드의 비용 -1."),
     "lee": TaxManCard(name="이철수", grade_num=8, description="갓 임용된 7급 공채 신입. 열정은 넘치지만 아직 경험이 부족하다. 기본기에 충실하며 기초 자료 분석을 담당.", cost=0, hp=80, focus=2, analysis=5, persuasion=5, evidence=5, data=5, ability_name="[기본기]", ability_desc="'기본 경비 적정성 검토', '단순 경비 처리 오류 지적' 카드의 피해량 +8."),
     "ahn_wg": TaxManCard(name="안원구", grade_num=7, description="서울청 조사국 등에서 대기업 비자금 등 굵직한 특수 조사를 다룬 경험이 풍부한 '특수 조사의 귀재'.", cost=0, hp=110, focus=2, analysis=8, persuasion=5, evidence=10, data=6, ability_name="[특수 조사]", ability_desc="'현장 압수수색', '차명계좌 추적' 카드의 비용 -1. (최소 0)"),
-    "yoo_jj": TaxManCard(name="유재준", grade_num=7, description="서울청 조사2국에서 대기업 정기 세무조사 및 상속/증여세 조사를 담당하는 관리자. 꼼꼼한 분석과 설득이 강점.", cost=0, hp=100, focus=2, analysis=8, persuasion=7, evidence=7, data=7, ability_name="[정기 조사 전문]", ability_desc="'단순 오류(Error)' 유형의 혐의 공격 시, 팀 '설득(Persuasion)' 스탯 10당 피해량 +1."),
+    # (개선) 유재준 등급 상향 (7 -> 6)
+    "yoo_jj": TaxManCard(name="유재준", grade_num=6, description="서울청 조사2국에서 대기업 정기 세무조사 및 상속/증여세 조사를 담당하는 관리자. 꼼꼼한 분석과 설득이 강점.", cost=0, hp=100, focus=2, analysis=8, persuasion=7, evidence=7, data=7, ability_name="[정기 조사 전문]", ability_desc="'단순 오류(Error)' 유형의 혐의 공격 시, 팀 '설득(Persuasion)' 스탯 10당 피해량 +1."),
     "kim_th": TaxManCard(name="김태호", grade_num=6, description="중부청 조사1국에서 대기업/중견기업 심층 기획조사 및 국제거래 조사를 담당. 증거 확보와 데이터 분석 능력이 탁월하다.", cost=0, hp=105, focus=2, analysis=9, persuasion=5, evidence=9, data=8, ability_name="[심층 기획 조사]", ability_desc="'자본 거래(Capital Tx)' 혐의 공격 시, 팀 '증거(Evidence)' 스탯의 10%만큼 추가 피해."),
-    # (개선) 전진 등급 상향 (7 -> 6)
     "jeon_j": TaxManCard(name="전진", grade_num=6, description="중부청 조사1국 실무 과장. 조사 현장 지휘 경험이 풍부하며, 팀원들의 능력을 끌어내는 데 능숙하다.", cost=0, hp=85, focus=3, analysis=7, persuasion=6, evidence=6, data=6, ability_name="[실무 지휘]", ability_desc="턴 시작 시, 무작위 아군 팀원 1명의 다음 카드 사용 비용 -1. (본인 제외)"),
-    # --- [신규] 캐릭터 2명 추가 ---
     "kang_ms": TaxManCard(name="강민수", grade_num=5, description="서울지방국세청 등 주요 보직을 거치며 조사, 법인 등 다양한 분야의 실무와 정책 경험을 겸비. 빅데이터 분석 활용에 능하다.", cost=0, hp=95, focus=3, analysis=8, persuasion=8, evidence=7, data=10, ability_name="[빅데이터 활용]", ability_desc="'빅데이터 분석' 카드 사용 시, 제시되는 2장의 카드 중 1장을 선택하여 가져옵니다."),
     "kim_cg": TaxManCard(name="김창기", grade_num=5, description="세제실과 국세청의 주요 보직을 거치며 정책과 실무 모두에 정통. 공정과 상식에 기반한 세정 운영을 강조한다.", cost=0, hp=110, focus=3, analysis=9, persuasion=9, evidence=9, data=9, ability_name="[공정 과세]", ability_desc="전투 승리 시, 목표 세액 초과분의 10%만큼 추가로 팀 체력을 회복합니다."),
 }
@@ -159,7 +158,7 @@ LOGIC_CARD_DB = {
     "s_tier_02": LogicCard(name="조세피난처 역외탈세", cost=5, base_damage=130, tax_type=[TaxType.CORP], attack_category=[AttackCategory.CAPITAL], description="조세피난처에 설립된 특수목적회사(SPC) 등을 이용하여 해외 소득을 은닉한 역외탈세 혐의를 조사합니다.", text="BVI, 케이맨 SPC 실체 규명.", special_bonus={'target_method': MethodType.CAPITAL_TX, 'multiplier': 1.5, 'bonus_desc': '자본 거래에 1.5배 피해'}),
 }
 
-# --- [수정됨] 조사도구 DB (신규 2개 추가) ---
+# [조사도구 DB] (이전과 동일)
 ARTIFACT_DB = {
     "coffee": Artifact(name="☕ 믹스 커피", description="턴 시작 시 집중력 +1.", effect={"type": "on_turn_start", "value": 1, "subtype": "focus"}),
     "forensic": Artifact(name="💻 포렌식 장비", description="팀 '증거(Evidence)' 스탯 +5.", effect={"type": "on_battle_start", "value": 5, "subtype": "stat_evidence"}),
@@ -167,19 +166,16 @@ ARTIFACT_DB = {
     "plan": Artifact(name="📜 조사계획서", description="첫 턴 카드 +1장.", effect={"type": "on_battle_start", "value": 1, "subtype": "draw"}),
     "recorder": Artifact(name="🎤 녹음기", description="팀 '설득(Persuasion)' 스탯 +5.", effect={"type": "on_battle_start", "value": 5, "subtype": "stat_persuasion"}),
     "book": Artifact(name="📖 오래된 법전", description="'판례 제시', '법령 재검토' 비용 -1.", effect={"type": "on_cost_calculate", "value": -1, "target_cards": ["판례 제시", "법령 재검토"]}),
-    # --- [신규] 아티팩트 2개 ---
     "analysis_report": Artifact(name="📑 압수물 분석 보고서", description="팀 '분석(Analysis)' 스탯 +5.", effect={"type": "on_battle_start", "value": 5, "subtype": "stat_analysis"}),
     "expert_advice": Artifact(name="👨‍⚖️ 외부 전문가 자문", description="턴 시작 시 20% 확률로 집중력 +1.", effect={"type": "on_turn_start", "value": 1, "subtype": "focus_chance", "chance": 0.2})
 }
 
-
-# --- [수정됨] 기업 DB (교육 정보 가독성 개선) ---
+# [기업 DB] (이전과 동일)
 COMPANY_DB = [
     Company(
         name="(주)가나푸드", size="소규모",
         revenue=5000, operating_income=500, tax_target=5, team_hp_damage=(5, 10),
         description="중소 유통업체. 사장 SNS는 슈퍼카와 명품 사진 가득.",
-        # (개선) 교육 정보 가독성 개선
         real_case_desc=(
             "**[교육: 업무 무관 경비 및 증빙 관리]**\n\n"
             "법인이 사업과 직접 관련 없이 지출한 비용(예: 대표 개인 물품 구매, 가족 경비)은 법인세법상 손금(비용)으로 인정되지 않습니다(법인세법 제27조). "
@@ -197,7 +193,6 @@ COMPANY_DB = [
         name="㈜넥신 (Nexin)", size="중견기업",
         revenue=100000, operating_income=10000, tax_target=20, team_hp_damage=(10, 25),
         description="급성장 게임/IT 기업. 복잡한 지배구조와 관계사 거래.",
-        # (개선) 교육 정보 가독성 개선
         real_case_desc=(
             "**[교육: 부가가치세 과세/면세 및 부당행위계산부인]**\n\n"
             "IT 용역은 제공하는 서비스의 실질에 따라 부가가치세 과세 여부가 달라질 수 있습니다(부가가치세법 제26조 등 참조). 일반적으로 SW 개발 및 유지보수 용역은 과세 대상이나, 수출 등 특정 요건 충족 시 영세율 적용 가능성은 있습니다. 과세 대상을 면세로 잘못 신고하면 부가세 추징 및 가산세 대상입니다.\n\n"
@@ -214,7 +209,6 @@ COMPANY_DB = [
         name="(주)한늠석유 (자료상)", size="중견기업",
         revenue=50000, operating_income=-1000, tax_target=30, team_hp_damage=(15, 30),
         description="전형적인 '자료상'. 가짜 석유 유통, 허위 세금계산서 발행.",
-        # (개선) 교육 정보 가독성 개선
         real_case_desc=(
             "**[교육: 허위 세금계산서 수수 (자료상)]**\n\n"
             "실물 거래 없이 세금계산서만을 발급하거나 수취하는 행위는 '자료상 행위'로 간주됩니다. 이는 부가가치세 매입세액 부당 공제, 법인세 비용 과다 계상 등의 탈루로 이어지며, 조세 질서를 심각하게 훼손하는 중범죄입니다(조세범처벌법 제10조).\n\n"
@@ -230,7 +224,6 @@ COMPANY_DB = [
         name="㈜삼숭물산 (Samsoong)", size="대기업",
         revenue=50_000_000, operating_income=2_000_000, tax_target=1000, team_hp_damage=(20, 40),
         description="대한민국 최고 대기업. 복잡한 순환출자, 경영권 승계 이슈.",
-        # (개선) 교육 정보 가독성 개선
         real_case_desc=(
             "**[교육: 일감 몰아주기 및 불공정 자본거래]**\n\n"
             "대기업 집단 내에서 총수 일가가 지배하는 계열사에 부당하게 이익을 제공하는 '일감 몰아주기'는 편법 증여 수단으로 활용될 수 있습니다. 이는 상속세 및 증여세법상 증여의제 규정(상증세법 제45조의3) 또는 법인세법상 부당행위계산부인 규정(법인세법 제52조)의 적용 대상이 될 수 있습니다.\n\n"
@@ -248,7 +241,6 @@ COMPANY_DB = [
         name="구갈 코리아(유) (Googal)", size="외국계",
         revenue=2_000_000, operating_income=300_000, tax_target=800, team_hp_damage=(15, 30),
         description="다국적 IT 기업 한국 지사. '이전가격(TP)' 조작 통한 소득 해외 이전 혐의.",
-        # (개선) 교육 정보 가독성 개선
         real_case_desc=(
             "**[교육: 이전가격(TP) 조작 및 고정사업장 회피]**\n\n"
             "다국적 기업은 국외 특수관계자와의 거래 가격(이전가격)을 조작하여 국내 소득을 국외로 이전시키는 방식으로 조세를 회피할 수 있습니다. 이는 '국제조세조정에 관한 법률'(국조법)에 따라 정상가격 과세 대상입니다(국조법 제4조). 정상가격 산출 방법(비교가능 제3자 가격법 등) 적용 및 비교 대상 선정이 핵심 쟁점입니다.\n\n"
@@ -265,7 +257,6 @@ COMPANY_DB = [
         name="(주)씨엔해운 (C&)", size="대기업",
         revenue=10_000_000, operating_income=500_000, tax_target=1500, team_hp_damage=(25, 45),
         description="'선박왕' 운영 해운사. 조세피난처 페이퍼컴퍼니 이용 탈루 혐의.",
-        # (개선) 교육 정보 가독성 개선
         real_case_desc=(
             "**[교육: 조세피난처 SPC를 이용한 역외탈세]**\n\n"
             "조세 부담이 없거나 현저히 낮은 국가(조세피난처)에 명목상의 회사(SPC)를 설립하고, 이를 통해 국내 소득을 이전하거나 자산을 은닉하는 행위는 대표적인 역외탈세 유형입니다. 선박, 항공기 등 고가 자산 거래나 지식재산권 사용료 지급 등에 자주 이용됩니다.\n\n"
@@ -282,11 +273,11 @@ COMPANY_DB = [
 
 
 # --- 3. 게임 상태 초기화 및 관리 ---
-# --- [수정됨] initialize_game (팀원 중복 제거 로직 명확화) ---
+# (이전과 동일)
 def initialize_game(chosen_lead: TaxManCard, chosen_artifact: Artifact):
     """
-    (수정) 드래프트에서 선택된 리더/유물로 게임을 초기화합니다.
-    (수정) 팀원 수를 3명으로 고정하고, 중복 없이 랜덤 구성합니다.
+    (이전과 동일) 드래프트에서 선택된 리더/유물로 게임을 초기화합니다.
+    (이전과 동일) 팀원 수를 3명으로 고정하고, 중복 없이 랜덤 구성합니다.
     """
 
     seed = st.session_state.get('seed', 0)
@@ -301,11 +292,10 @@ def initialize_game(chosen_lead: TaxManCard, chosen_artifact: Artifact):
 
     # 2. 나머지 2명은 전체 인물 풀에서 랜덤 선택 (리더 제외, 중복 제외)
     all_members = list(TAX_MAN_DB.values())
-    remaining_pool = [m for m in all_members if m.name != chosen_lead.name] # 이름으로 비교하여 리더 제외
+    remaining_pool = [m for m in all_members if m.name != chosen_lead.name]
 
     num_to_sample = min(2, len(remaining_pool))
     if num_to_sample > 0:
-        # random.sample은 이미 중복 없이 뽑아줌
         additional_members = random.sample(remaining_pool, num_to_sample)
         team_members.extend(additional_members)
 
@@ -355,7 +345,7 @@ def initialize_game(chosen_lead: TaxManCard, chosen_artifact: Artifact):
 # --- 4. 게임 로직 함수 ---
 # (이하 로직 함수들은 이전 버전과 거의 동일)
 # ... (start_player_turn, draw_cards, check_draw_cards_in_hand 등등) ...
-# --- [수정됨] start_battle (기업 특화 카드 추가 로직, 교육 로그) ---
+# --- start_battle (기업 특화 카드 추가 로직 포함) ---
 def start_battle(company_template):
     company = copy.deepcopy(company_template); st.session_state.current_battle_company = company; st.session_state.game_state = "BATTLE"
     st.session_state.battle_log = [f"--- {company.name} ({company.size}) 조사 시작 ---"]
@@ -397,7 +387,6 @@ def start_battle(company_template):
                 st.session_state.bonus_draw += artifact.effect["value"]
 
     # (개선) 기업 특화 카드 추가 로직
-    # 현재 덱과 버린 덱을 합쳐 임시 덱 생성 (deepcopy로 원본 보존)
     temp_deck_base = [copy.deepcopy(c) for c in st.session_state.player_deck + st.session_state.player_discard]
 
     added_cards = [] # 이번 전투에 추가된 카드 목록
@@ -408,15 +397,13 @@ def start_battle(company_template):
             added_cards.append(copy.deepcopy(capital_card)) # 복사본 추가
             log_message("✨ [기업 특성 감지] 복잡한 자금 흐름에 대비해 '자금출처조사' 카드를 임시로 덱에 추가합니다.", "info")
 
-    # TODO: 다른 기업 특화 카드 로직 추가 가능 (예: 자료상 -> '현장 압수수색' 추가)
-
     # 임시 카드가 포함된 덱을 섞어서 전투 시작
     final_battle_deck = temp_deck_base + added_cards
     st.session_state.player_deck = random.sample(final_battle_deck, len(final_battle_deck))
     st.session_state.player_discard = []; st.session_state.player_hand = []; start_player_turn()
 
 # (log_message, go_to_next_stage 이전과 동일)
-# ... (이전 코드와 동일한 로직 함수들 생략) ...
+# ...
 
 # --- 5. UI 화면 함수 ---
 
@@ -513,7 +500,7 @@ def show_setup_draft_screen():
 
         st.rerun()
 
-# (show_map_screen 이전과 동일)
+# (show_map_screen 이전과 동일 - 교육 정보 줄바꿈 처리 추가)
 def show_map_screen():
     if 'current_stage_level' not in st.session_state:
         st.warning("게임 상태가 초기화되지 않았습니다. 메인 메뉴로 돌아갑니다.")
@@ -537,7 +524,7 @@ def show_map_screen():
             st.info(f"**목표 추징 세액:** {company.tax_target:,} 억원 💰")
 
             with st.expander("Click: 혐의 및 실제 사례 정보"):
-                # (개선) 강화된 교육 정보 표시 (줄바꿈 포함)
+                # (개선) 강화된 교육 정보 표시 (줄바꿈 처리)
                 st.info(f"**[교육 정보]**\n{company.real_case_desc.replace('\\n\\n', '\n\n')}") # Markdown 줄바꿈 처리
                 st.markdown("---"); st.markdown("**주요 탈루 혐의**")
                 for tactic in company.tactics:
@@ -550,8 +537,8 @@ def show_map_screen():
         st.success("🎉 모든 기업 조사 완료! (데모 종료)"); st.balloons()
         if st.button("🏆 다시 시작"): st.session_state.game_state = "MAIN_MENU"; st.rerun()
 
-# (show_battle_screen 이전과 동일)
-# ... (UI 레이아웃 변경 유지됨) ...
+# (show_battle_screen 이전과 동일 - 레이아웃 변경 유지)
+# ...
 
 # (show_reward_screen, show_reward_remove_screen 이전과 동일)
 # ...
@@ -567,6 +554,7 @@ def show_map_screen():
 def main():
     st.set_page_config(page_title="세무조사 덱빌딩", layout="wide", initial_sidebar_state="expanded")
 
+    # 세션 상태 초기화 확인
     if 'game_state' not in st.session_state:
         st.session_state.game_state = "MAIN_MENU"
 
@@ -575,35 +563,44 @@ def main():
     required_keys = ['player_team', 'player_deck', 'player_discard', 'player_hand', 'current_stage_level', 'player_artifacts', 'team_stats'] # 필수 키 목록
 
     # 게임 진행 중 상태인데 필수 키 중 하나라도 없으면 메인으로 강제 이동
-    if st.session_state.game_state in running_states and not all(key in st.session_state for key in required_keys):
-        st.toast("⚠️ 세션 상태 오류 발생. 게임을 초기화하고 메인 메뉴로 돌아갑니다.")
-        # 잠재적으로 손상된 세션 상태를 정리 (game_state 제외)
-        keys_to_delete = [k for k in st.session_state.keys() if k != 'game_state']
-        for key in keys_to_delete:
-            del st.session_state[key]
-        st.session_state.game_state = "MAIN_MENU"
-        st.rerun()
-        return # 메인 메뉴로 리디렉션 후 즉시 종료
+    is_state_valid = True
+    if st.session_state.game_state in running_states:
+        if not all(key in st.session_state for key in required_keys):
+            is_state_valid = False
+            st.toast("⚠️ 세션 상태 오류 발생. 게임을 초기화하고 메인 메뉴로 돌아갑니다.")
+            # 잠재적으로 손상된 세션 상태를 정리 (game_state 제외)
+            keys_to_delete = [k for k in st.session_state.keys() if k != 'game_state']
+            for key in keys_to_delete:
+                del st.session_state[key]
+            st.session_state.game_state = "MAIN_MENU"
+            st.rerun()
+            return # 메인 메뉴로 리디렉션 후 즉시 종료
 
-    # 상태에 따른 화면 표시
-    if st.session_state.game_state == "MAIN_MENU":
-        show_main_menu()
-    elif st.session_state.game_state == "GAME_SETUP_DRAFT":
-        show_setup_draft_screen()
-    elif st.session_state.game_state == "MAP":
-        show_map_screen()
-    elif st.session_state.game_state == "BATTLE":
-        show_battle_screen()
-    elif st.session_state.game_state == "REWARD":
-        show_reward_screen()
-    elif st.session_state.game_state == "REWARD_REMOVE":
-        show_reward_remove_screen()
-    elif st.session_state.game_state == "GAME_OVER":
-        show_game_over_screen()
-
-    # 사이드바 표시 (게임 진행 중이고, player_team 정보가 있을 때만)
-    if st.session_state.game_state not in ["MAIN_MENU", "GAME_OVER", "GAME_SETUP_DRAFT"] and 'player_team' in st.session_state:
-        show_player_status_sidebar()
+    # 상태에 따른 화면 표시 (상태가 유효할 때만)
+    if is_state_valid:
+        current_game_state = st.session_state.game_state # 오류 방지 위해 변수 사용
+        if current_game_state == "MAIN_MENU":
+            show_main_menu()
+        elif current_game_state == "GAME_SETUP_DRAFT":
+            show_setup_draft_screen()
+        elif current_game_state == "MAP":
+            show_map_screen()
+            show_player_status_sidebar() # 맵 화면 표시 후 사이드바 호출
+        elif current_game_state == "BATTLE":
+            show_battle_screen()
+            show_player_status_sidebar() # 전투 화면 표시 후 사이드바 호출
+        elif current_game_state == "REWARD":
+            show_reward_screen()
+            show_player_status_sidebar() # 보상 화면 표시 후 사이드바 호출
+        elif current_game_state == "REWARD_REMOVE":
+            show_reward_remove_screen()
+            show_player_status_sidebar() # 카드 제거 화면 표시 후 사이드바 호출
+        elif current_game_state == "GAME_OVER":
+            show_game_over_screen()
+        # else: # 알 수 없는 상태 처리 (필요시)
+        #    st.error("알 수 없는 게임 상태입니다. 메인 메뉴로 돌아갑니다.")
+        #    st.session_state.game_state = "MAIN_MENU"
+        #    st.rerun()
 
 if __name__ == "__main__":
     main()
