@@ -184,20 +184,23 @@ def cancel_card_selection(): st.session_state.selected_card_index = None; st.rer
 
 def calculate_card_cost(card): # SyntaxError 수정됨
     cost = card.cost
-    if "백용호" in [m.name for m in st.session_state.player_team] and ('데이터' in card.name or '분석' in card.name or AttackCategory.CAPITAL in card.attack_category): cost = max(0, cost - 1)
-    is_first = st.session_state.get('turn_first_card_played', True); type_match = ('분석' in card.name or '판례' in card.name or '법령' in card.name or AttackCategory.COMMON in card.attack_category)
-    if "박지연" in [m.name for m in st.session_state.player_team] and is_first and type_match: cost = max(0, cost - 1)
-    if "안원구" in [m.name for m in st.session_state.player_team] and card.name in ['현장 압수수색', '차명계좌 추적']: cost = max(0, cost - 1)
-    # --- SyntaxError 수정된 부분 ---
+    if "백용호" in [m.name for m in st.session_state.player_team] and ('데이터' in card.name or '분석' in card.name or AttackCategory.CAPITAL in card.attack_category):
+        cost = max(0, cost - 1)
+    is_first = st.session_state.get('turn_first_card_played', True);
+    type_match = ('분석' in card.name or '판례' in card.name or '법령' in card.name or AttackCategory.COMMON in card.attack_category)
+    if "박지연" in [m.name for m in st.session_state.player_team] and is_first and type_match:
+        cost = max(0, cost - 1)
+    if "안원구" in [m.name for m in st.session_state.player_team] and card.name in ['현장 압수수색', '차명계좌 추적']:
+        cost = max(0, cost - 1)
     if st.session_state.get('cost_reduction_active', False):
         original_cost = cost
         cost = max(0, cost - 1)
         if cost < original_cost:
             st.session_state.cost_reduction_active = False
             log_message(f"✨ [실무 지휘] 카드 비용 -1!", "info")
-    # --- ---
     for art in st.session_state.player_artifacts:
-        if art.effect["type"] == "on_cost_calculate" and card.name in art.effect["target_cards"]: cost = max(0, cost + art.effect["value"])
+        if art.effect["type"] == "on_cost_calculate" and card.name in art.effect["target_cards"]:
+            cost = max(0, cost + art.effect["value"])
     return cost
 
 def execute_attack(card_index, tactic_index): # SyntaxError 수정됨
@@ -211,7 +214,7 @@ def execute_attack(card_index, tactic_index): # SyntaxError 수정됨
     if st.session_state.player_focus_current < cost: st.toast(f"집중력 부족! ({cost})", icon="🧠"); st.session_state.selected_card_index = None; st.rerun(); return
     st.session_state.player_focus_current -= cost;
     if st.session_state.get('turn_first_card_played', True): st.session_state.turn_first_card_played = False
-    base = card.base_damage; ref = 500; scale = (company.tax_target / ref)**0.5; capped = max(0.5, min(2.0, scale)); scaled = int(base * capped); scale_log = f" (기업 규모 보정: {base}→{scaled})" if capped != 1.0 else ""; damage = scaled
+    base = card.base_damage; ref = 500; scale = (company.tax_target / ref)**0.5 if company.tax_target > 0 else 0.5; capped = max(0.5, min(2.0, scale)); scaled = int(base * capped); scale_log = f" (기업 규모 보정: {base}→{scaled})" if capped != 1.0 else ""; damage = scaled
     team_stats = st.session_state.team_stats; team_bonus = 0
     if any(c in [AttackCategory.COST, AttackCategory.COMMON] for c in card.attack_category): team_bonus += int(team_stats["analysis"] * 0.5)
     if AttackCategory.CAPITAL in card.attack_category: team_bonus += int(team_stats["data"] * 1.0)
@@ -223,13 +226,9 @@ def execute_attack(card_index, tactic_index): # SyntaxError 수정됨
     if "유재준" in [m.name for m in st.session_state.player_team] and tactic.method_type == MethodType.ERROR:
         bonus = int(team_stats["persuasion"] / 10)
         if bonus > 0: damage += bonus; log_message(f"✨ [정기 조사] +{bonus}!", "info")
-    # --- SyntaxError 수정된 부분 ---
     if "김태호" in [m.name for m in st.session_state.player_team] and AttackCategory.CAPITAL in card.attack_category:
         bonus = int(team_stats["evidence"] * 0.1)
-        if bonus > 0:
-            damage += bonus
-            log_message(f"✨ [심층 기획] +{bonus}!", "info")
-    # --- ---
+        if bonus > 0: damage += bonus; log_message(f"✨ [심층 기획] +{bonus}!", "info")
     mult = 1.0; mult_log = ""
     if card.special_bonus and card.special_bonus.get('target_method') == tactic.method_type:
         m = card.special_bonus.get('multiplier', 1.0); mult *= m; mult_log += f"🔥[{card.special_bonus.get('bonus_desc')}] "
@@ -240,7 +239,13 @@ def execute_attack(card_index, tactic_index): # SyntaxError 수정됨
     final_dmg = int(damage * mult); remain = tactic.total_amount - tactic.exposed_amount; dmg_tactic = min(final_dmg, remain); overkill = final_dmg - dmg_tactic; overkill_contrib = int(overkill * 0.5); tactic.exposed_amount += dmg_tactic; company.current_collected_tax += (dmg_tactic + overkill_contrib)
     prefix = "▶️ [적중]" if mult <= 1.0 else ("💥 [치명타!]" if mult >= 2.0 else "👍 [효과적!]"); log_message(f"{prefix} '{card.name}' **{final_dmg}억원** 피해!{scale_log}{mult_log}", "success")
     if overkill > 0: log_message(f"ℹ️ [초과 데미지] {overkill} 중 {overkill_contrib} (50%)만 총 세액 반영.", "info")
-    if tactic.exposed_amount >= tactic.total_amount and not tactic.is_cleared: tactic.is_cleared = True; log_message(f"🔥 [{tactic.name}] 혐의 완전 적발! ({tactic.total_amount}억원)", "warning"); if "벤츠" in card.text: log_message("💬 [현장] 법인소유 벤츠 발견!", "info"); if "압수수색" in card.name: log_message("💬 [현장] 비밀장부 확보!", "info")
+    # --- SyntaxError 수정된 부분 ---
+    if tactic.exposed_amount >= tactic.total_amount and not tactic.is_cleared:
+        tactic.is_cleared = True
+        log_message(f"🔥 [{tactic.name}] 혐의 완전 적발! ({tactic.total_amount}억원)", "warning")
+        if "벤츠" in card.text: log_message("💬 [현장] 법인소유 벤츠 발견!", "info")
+        if "압수수색" in card.name: log_message("💬 [현장] 비밀장부 확보!", "info")
+    # --- ---
     st.session_state.player_discard.append(st.session_state.player_hand.pop(card_index)); st.session_state.selected_card_index = None; check_battle_end(); st.rerun()
 
 def execute_auto_attack():
