@@ -374,15 +374,15 @@ def calculate_card_cost(card):
         if artifact.effect["type"] == "on_cost_calculate" and card.name in artifact.effect["target_cards"]: cost_to_pay = max(0, cost_to_pay + artifact.effect["value"])
     return cost_to_pay
 
-# --- [수정됨] execute_attack (데미지 스케일링 추가) ---
+# --- [수정됨] execute_attack (데미지 스케일링 추가, SyntaxError 수정) ---
 def execute_attack(card_index, tactic_index):
     if card_index is None or card_index >= len(st.session_state.player_hand) or tactic_index >= len(st.session_state.current_battle_company.tactics):
         st.toast("오류: 공격 실행 오류.", icon="🚨"); st.session_state.selected_card_index = None; st.rerun(); return
 
-    card = st.session_state.player_hand[card_index]; cost_to_pay = calculate_card_cost(card) 
+    card = st.session_state.player_hand[card_index]; cost_to_pay = calculate_card_cost(card)
     tactic = st.session_state.current_battle_company.tactics[tactic_index]; company = st.session_state.current_battle_company
 
-    # 페널티 체크
+    # --- 페널티 체크 (세목/유형 불일치) ---
     is_tax_match = (TaxType.COMMON in card.tax_type) or (isinstance(tactic.tax_type, list) and any(tt in card.tax_type for tt in tactic.tax_type)) or (tactic.tax_type in card.tax_type)
     if not is_tax_match:
         t_types = [t.value for t in tactic.tax_type] if isinstance(tactic.tax_type, list) else [tactic.tax_type.value]
@@ -393,18 +393,18 @@ def execute_attack(card_index, tactic_index):
         log_message(f"🚨 [유형 불일치!] '{card.name}' -> '{tactic.tactic_category.value}' ({tactic.name}) (❤️-5)", "error"); st.session_state.team_hp -= 5
         st.session_state.player_discard.append(st.session_state.player_hand.pop(card_index)); st.session_state.selected_card_index = None; check_battle_end(); st.rerun(); return
 
-    # 비용 지불
+    # --- 비용 지불 ---
     if st.session_state.player_focus_current < cost_to_pay: st.toast(f"집중력 부족! (필요: {cost_to_pay})", icon="🧠"); st.session_state.selected_card_index = None; st.rerun(); return
     st.session_state.player_focus_current -= cost_to_pay
     if st.session_state.get('turn_first_card_played', True): st.session_state.turn_first_card_played = False
 
-    # [신규] 데미지 스케일링
+    # --- 데미지 스케일링 ---
     base_damage = card.base_damage; reference_target = 500; scaling_factor = (company.tax_target / reference_target)**0.5
     capped_scaling_factor = max(0.5, min(2.0, scaling_factor)); scaled_damage = int(base_damage * capped_scaling_factor)
     scaling_log = f" (기업 규모 보정: {base_damage}→{scaled_damage})" if capped_scaling_factor != 1.0 else ""
-    damage = scaled_damage 
-    
-    # 팀 스탯 보너스
+    damage = scaled_damage
+
+    # --- 팀 스탯 보너스 ---
     team_stats = st.session_state.team_stats; team_bonus = 0
     if any(c in [AttackCategory.COST, AttackCategory.COMMON] for c in card.attack_category): team_bonus += int(team_stats["analysis"] * 0.5)
     if AttackCategory.CAPITAL in card.attack_category: team_bonus += int(team_stats["data"] * 1.0)
@@ -412,13 +412,29 @@ def execute_attack(card_index, tactic_index):
     if '압수' in card.name: team_bonus += int(team_stats["evidence"] * 1.5)
     if team_bonus > 0: log_message(f"📈 [팀 스탯 보너스] +{team_bonus}!", "info"); damage += team_bonus
 
-    # 조사관 능력 보너스
+    # --- 조사관 능력 보너스 (고정값) ---
     if "이철수" in [m.name for m in st.session_state.player_team] and card.name in ["기본 경비 적정성 검토", "단순 경비 처리 오류 지적"]: damage += 8; log_message("✨ [기본기] +8!", "info")
-    if "임향수" in [m.name for m in st.session_state.player_team] and ('분석' in card.name or '자료' in card.name or '추적' in card.name or AttackCategory.CAPITAL in card.attack_category): bonus = int(team_stats["analysis"] * 0.1 + team_stats["data"] * 0.1); damage += bonus; log_message(f"✨ [기획 조사] 스탯 비례 +{bonus}!", "info")
-    if "유재준" in [m.name for m in st.session_state.player_team] and tactic.method_type == MethodType.ERROR: bonus = int(team_stats["persuasion"] / 10); if bonus > 0: damage += bonus; log_message(f"✨ [정기 조사 전문] 설득 기반 +{bonus}!", "info")
-    if "김태호" in [m.name for m in st.session_state.player_team] and AttackCategory.CAPITAL in card.attack_category: bonus = int(team_stats["evidence"] * 0.1); if bonus > 0: damage += bonus; log_message(f"✨ [심층 기획 조사] 증거 기반 +{bonus}!", "info")
 
-    # 최종 피해 배율
+    # --- 조사관 능력 보너스 (스탯 비례) ---
+    if "임향수" in [m.name for m in st.session_state.player_team] and ('분석' in card.name or '자료' in card.name or '추적' in card.name or AttackCategory.CAPITAL in card.attack_category):
+        bonus = int(team_stats["analysis"] * 0.1 + team_stats["data"] * 0.1)
+        damage += bonus
+        log_message(f"✨ [기획 조사] 스탯 비례 +{bonus}!", "info")
+
+    # (수정) 유재준 능력 로직 줄바꿈 및 들여쓰기 수정
+    if "유재준" in [m.name for m in st.session_state.player_team] and tactic.method_type == MethodType.ERROR:
+         bonus = int(team_stats["persuasion"] / 10)
+         if bonus > 0:
+              damage += bonus
+              log_message(f"✨ [정기 조사 전문] 설득 기반 +{bonus}!", "info") # 들여쓰기 수정
+
+    if "김태호" in [m.name for m in st.session_state.player_team] and AttackCategory.CAPITAL in card.attack_category:
+        bonus = int(team_stats["evidence"] * 0.1)
+        if bonus > 0:
+            damage += bonus
+            log_message(f"✨ [심층 기획 조사] 증거 기반 +{bonus}!", "info")
+
+    # --- 최종 피해 배율 계산 ---
     bonus_multiplier = 1.0; multiplier_log = ""
     if card.special_bonus and card.special_bonus.get('target_method') == tactic.method_type:
         mult = card.special_bonus.get('multiplier', 1.0); bonus_multiplier *= mult; multiplier_log += f"🔥[{card.special_bonus.get('bonus_desc')}] "
@@ -428,12 +444,12 @@ def execute_attack(card_index, tactic_index):
     if "이현동" in [m.name for m in st.session_state.player_team] and tactic.method_type == MethodType.INTENTIONAL: bonus_multiplier *= 1.2; multiplier_log += "✨[지하경제 +20%] "
     final_damage = int(damage * bonus_multiplier)
 
-    # 오버킬 및 세액 계산
+    # --- 오버킬 및 세액 계산 ---
     remaining_tactic_hp = tactic.total_amount - tactic.exposed_amount; damage_to_tactic = min(final_damage, remaining_tactic_hp)
     overkill_damage = final_damage - damage_to_tactic; overkill_contribution = int(overkill_damage * 0.5)
     tactic.exposed_amount += damage_to_tactic; company.current_collected_tax += (damage_to_tactic + overkill_contribution)
 
-    # 로그 출력
+    # --- 로그 출력 ---
     log_prefix = "▶️ [적중]" if bonus_multiplier <= 1.0 else ("💥 [치명타!]" if bonus_multiplier >= 2.0 else "👍 [효과적!]")
     log_message(f"{log_prefix} '{card.name}'(이)가 **{final_damage}억원** 피해!{scaling_log}{multiplier_log}", "success")
     if overkill_damage > 0: log_message(f"ℹ️ [초과 데미지] {overkill_damage} 중 {overkill_contribution} (50%)만 총 세액 반영.", "info")
@@ -442,10 +458,9 @@ def execute_attack(card_index, tactic_index):
         if "벤츠" in card.text: log_message("💬 [현장] 법인소유 벤츠 발견!", "info")
         if "압수수색" in card.name: log_message("💬 [현장] 비밀장부 확보!", "info")
 
-    # 마무리
+    # --- 마무리 ---
     st.session_state.player_discard.append(st.session_state.player_hand.pop(card_index)); st.session_state.selected_card_index = None;
     check_battle_end(); st.rerun()
-
 # --- 보호막 로직 제거됨 ---
 def end_player_turn():
     if 'kim_dj_effect_used' in st.session_state: st.session_state.kim_dj_effect_used = False
@@ -827,3 +842,4 @@ def main():
     if st.session_state.game_state not in ["MAIN_MENU", "GAME_OVER", "GAME_SETUP_DRAFT"] and 'player_team' in st.session_state: show_player_status_sidebar()
 
 if __name__ == "__main__": main()
+
