@@ -811,17 +811,39 @@ def show_map_screen():
     companies = st.session_state.company_order
     if stage < len(companies):
         co = companies[stage]
-        with st.container(border=True):
-            st.subheader(f"🏢 {co.name} ({co.size})"); st.markdown(co.description)
-            c1, c2 = st.columns(2); c1.metric("매출액", format_krw(co.revenue)); c2.metric("영업이익", format_krw(co.operating_income))
-            # [수정] team_hp_damage는 생성자에서 이미 20% 증가됨
-            st.warning(f"**예상 턴당 데미지:** {co.team_hp_damage[0]}~{co.team_hp_damage[1]} ❤️"); st.info(f"**목표 추징 세액:** {co.tax_target:,} 억원 💰")
+# show_map_screen 함수 내부 ...
             with st.expander("🔍 혐의 및 실제 사례 정보 보기"):
-                st.markdown("---"); st.markdown("### 📚 실제 사례 기반 교육 정보"); st.markdown(co.real_case_desc)
+                st.markdown("---"); st.markdown("### 📚 실제 사례 기반 교육 정보")
+                # 교육 정보가 정상적으로 표시되는지 확인 (st.markdown 사용)
+                st.markdown(co.real_case_desc)
                 st.markdown("---"); st.markdown("### 📝 주요 탈루 혐의 분석")
-                for t in co.tactics:
-                    t_types = [tx.value for tx in t.tax_type] if isinstance(t.tax_type, list) else [t.tax_type.value];
-                    st.markdown(f"**📌 {t.name}** (`{'/'.join(t_types)}`, `{t.method_type.value}`, `{t.tactic_category.value}`)\n> _{t.description}_")
+
+                if not co.tactics:
+                    st.write("(분석할 특정 탈루 혐의 없음)")
+                else:
+                    for i, t in enumerate(co.tactics):
+                        try:
+                            # --- [수정] AttributeError 방지 ---
+                            if isinstance(t.tax_type, list):
+                                # 리스트 내 요소가 .value 속성을 가지는지 확인 후 값 추출
+                                t_types = [tx.value for tx in t.tax_type if hasattr(tx, 'value')]
+                            elif hasattr(t.tax_type, 'value'):
+                                # 단일 객체가 .value 속성을 가지는지 확인 후 값 추출
+                                t_types = [t.tax_type.value]
+                            else:
+                                t_types = ["타입 오류"] # 예외 처리
+
+                            # method_type과 tactic_category도 안전하게 .value 접근
+                            method_val = t.method_type.value if hasattr(t.method_type, 'value') else "메소드 오류"
+                            category_val = t.tactic_category.value if hasattr(t.tactic_category, 'value') else "카테고리 오류"
+                            # --- 수정 끝 ---
+
+                            st.markdown(f"**📌 {t.name}** (`{'/'.join(t_types)}`, `{method_val}`, `{category_val}`)\n> _{t.description}_")
+
+                        except Exception as e:
+                            st.error(f"혐의 '{t.name}' 표시 중 오류 발생: {e}")
+                            # 오류 발생 시 해당 혐의 정보 대신 오류 메시지 출력
+# ... 이하 함수 코드 동일 ...
             if st.button(f"🚨 {co.name} 조사 시작", type="primary", use_container_width=True):
                 start_battle(co)
                 st.rerun()
@@ -1094,3 +1116,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
