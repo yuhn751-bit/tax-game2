@@ -10,7 +10,7 @@ class TaxType(str, Enum): CORP = "법인세"; VAT = "부가세"; COMMON = "공�
 class AttackCategory(str, Enum): COST = "비용"; REVENUE = "수익"; CAPITAL = "자본"; COMMON = "공통"
 class MethodType(str, Enum): INTENTIONAL = "고의적 누락"; ERROR = "단순 오류"; CAPITAL_TX = "자본 거래"
 
-# --- 헬퍼 함수 (SyntaxError 수정) ---
+# --- 헬퍼 함수 ---
 def format_krw(amount):
     if amount is None: return "N/A"
     try:
@@ -25,23 +25,23 @@ class Card:
     def __init__(self, name, description, cost): self.name = name; self.description = description; self.cost = cost;
 
 class TaxManCard(Card):
-    # [수정] hp 기본값 20% 감소 (생성자에서 처리)
+    # hp 기본값 20% 감소
     def __init__(self, name, description, cost, hp, focus, analysis, persuasion, evidence, data, ability_name, ability_desc):
         super().__init__(name, description, cost);
-        nerfed_hp = int(hp * 0.8) # 20% 너프
+        nerfed_hp = int(hp * 0.8)
         self.hp=nerfed_hp; self.max_hp=nerfed_hp;
         self.focus=focus; self.analysis=analysis; self.persuasion=persuasion; self.evidence=evidence; self.data=data; self.ability_name=ability_name; self.ability_desc=ability_desc;
 
 class LogicCard(Card):
-    # [수정] cost 기본값 +1 증가 (생성자에서 처리)
+    # cost 기본값 +1 증가
     def __init__(self, name, description, cost, base_damage, tax_type: list[TaxType], attack_category: list[AttackCategory], text, special_effect=None, special_bonus=None):
-        super().__init__(name, description, max(0, cost + 1)); # 비용 +1 증가 (최소 0)
+        super().__init__(name, description, max(0, cost + 1));
         self.base_damage=base_damage; self.tax_type=tax_type; self.attack_category=attack_category; self.text=text; self.special_effect=special_effect; self.special_bonus=special_bonus;
 
 class EvasionTactic:
     def __init__(self, name, description, total_amount, tax_type: TaxType | list[TaxType], method_type: MethodType, tactic_category: AttackCategory):
         self.name=name; self.description=description; self.total_amount=total_amount; self.exposed_amount=0; self.tax_type=tax_type; self.method_type=method_type; self.tactic_category=tactic_category; self.is_cleared=False;
-class ResidualTactic(EvasionTactic): # 잔여 혐의 클래스
+class ResidualTactic(EvasionTactic):
      def __init__(self, remaining_tax):
           super().__init__(name="[잔여 혐의 조사]",
                            description=f"특정 혐의를 모두 적발했습니다. 남은 목표 세액 {remaining_tax:,}억원을 마저 추징합니다.",
@@ -54,10 +54,9 @@ class ResidualTactic(EvasionTactic): # 잔여 혐의 클래스
      @is_cleared.setter
      def is_cleared(self, value): pass
 class Company:
-    # [수정] team_hp_damage 20% 증가 (생성자에서 처리)
+    # team_hp_damage 20% 증가
     def __init__(self, name, size, description, real_case_desc, revenue, operating_income, tax_target, team_hp_damage, tactics, defense_actions):
         self.name=name; self.size=size; self.description=description; self.real_case_desc=real_case_desc; self.revenue=revenue; self.operating_income=operating_income; self.tax_target=tax_target;
-        # 20% 증가 (올림)
         buffed_damage = (math.ceil(team_hp_damage[0] * 1.2), math.ceil(team_hp_damage[1] * 1.2))
         self.team_hp_damage=buffed_damage;
         self.current_collected_tax=0; self.tactics=tactics; self.defense_actions=defense_actions;
@@ -306,7 +305,6 @@ def start_player_turn():
             st.session_state.bonus_draw += art.effect["value"]
 
     draw_n = 4 + st.session_state.get('bonus_draw', 0)
-    # 첫 턴인지 확인 (로그 비어있는지 또는 '조사 시작' 로그만 있는지)
     is_first_turn = not st.session_state.battle_log or (len(st.session_state.battle_log) > 0 and "조사 시작" in st.session_state.battle_log[-1])
     if st.session_state.get('bonus_draw', 0) > 0 and is_first_turn:
         log_message(f"✨ 시작 보너스로 카드 {st.session_state.bonus_draw}장 추가 드로우!", "info")
@@ -547,8 +545,8 @@ def execute_auto_attack():
         if not all_tactics_cleared:
             for i, t in enumerate(company.tactics):
                 if t.is_cleared: continue
-                is_tax = (TaxType.COMMON in current_card.tax_type) or (isinstance(t.tax_type, list) and any(tt in current_card.tax_type for tt in t.tax_type)) or (t.tax_type in current_card.tax_type)
-                is_cat = (AttackCategory.COMMON in current_card.attack_category) or (t.tactic_category in current_card.attack_category)
+                is_tax = (TaxType.COMMON in card.tax_type) or (isinstance(t.tax_type, list) and any(tt in card.tax_type for tt in t.tax_type)) or (t.tax_type in card.tax_type)
+                is_cat = (AttackCategory.COMMON in card.attack_category) or (t.tactic_category in card.attack_category)
                 if is_tax and is_cat: target_idx = i; break
         elif all_tactics_cleared and target_not_met:
              target_idx = len(company.tactics)
@@ -585,30 +583,28 @@ def develop_tax_logic(): # 과세 논리 개발
     if remaining_tactics:
         for t in remaining_tactics:
             target_cats.add(t.tactic_category)
-            # tax_type이 리스트인지, 단일 객체인지 확인 후 처리
             if isinstance(t.tax_type, list):
                  for tt in t.tax_type:
-                    if hasattr(tt, 'value'): target_cats.add(tt.value) # Enum 값 사용
+                    if hasattr(tt, 'value'): target_cats.add(tt.value)
             elif hasattr(t.tax_type, 'value'):
-                 target_cats.add(t.tax_type.value) # Enum 값 사용
+                 target_cats.add(t.tax_type.value)
 
             if hasattr(t.method_type, 'value'):
-                target_methods.add(t.method_type) # Enum 객체 자체 저장
-    elif all_cleared and target_not_met: # 잔여 혐의
+                target_methods.add(t.method_type)
+    elif all_cleared and target_not_met:
         target_cats.add(AttackCategory.COMMON.value)
         target_methods.add(MethodType.ERROR)
     else:
         st.toast("💡 더 이상 분석할 혐의가 없습니다.", icon="ℹ️")
-        st.session_state.team_hp += hp_cost # 체력 환불
+        st.session_state.team_hp += hp_cost
         return
 
     best_card = None; max_score = -1
 
     for card in LOGIC_CARD_DB.values():
         if card.base_damage <= 0 or (card.special_effect and card.special_effect.get("type") in ["search_draw", "draw"]):
-            continue # 공격 카드만 대상
+            continue
 
-        # 카드의 attack_category 값(문자열)과 target_cats(문자열 집합) 비교
         card_cats_values = [c.value for c in card.attack_category]
         is_cat_match = (AttackCategory.COMMON.value in card_cats_values) or any(cat_val in target_cats for cat_val in card_cats_values)
 
@@ -616,11 +612,10 @@ def develop_tax_logic(): # 과세 논리 개발
 
         score = card.base_damage
 
-        # 카드의 special_bonus target_method(Enum 객체)와 target_methods(Enum 객체 집합) 비교
         if card.special_bonus and card.special_bonus.get('target_method') in target_methods:
             score *= card.special_bonus.get('multiplier', 1.0) * 1.5
 
-        card_actual_cost = calculate_card_cost(card) # 현재 상태 기준 실제 비용 계산
+        card_actual_cost = calculate_card_cost(card)
         if card_actual_cost > 3: score *= 0.8
         if card_actual_cost <= 1 and card.base_damage > 0: score *= 1.1
 
@@ -633,11 +628,11 @@ def develop_tax_logic(): # 과세 논리 개발
         st.session_state.player_hand.append(new_card)
         log_message(f"💡 [과세 논리 개발] '{best_card.name}' 획득! (팀 체력 -{hp_cost})", "warning")
         st.toast(f"💡 '{best_card.name}' 획득! (❤️-{hp_cost})", icon="💡")
-        st.session_state.hit_effect_player = True # 피격 효과
+        st.session_state.hit_effect_player = True
     else:
         log_message("💡 [과세 논리 개발] 적절한 카드를 찾지 못함.", "info")
         st.toast("💡 적절한 카드를 찾지 못했습니다.", icon="ℹ️")
-        st.session_state.team_hp += hp_cost # 체력 환불
+        st.session_state.team_hp += hp_cost
 
     st.rerun()
 
@@ -654,7 +649,7 @@ def end_player_turn():
 
 def enemy_turn():
     co = st.session_state.current_battle_company; act = random.choice(co.defense_actions);
-    min_d, max_d = co.team_hp_damage; # 생성자에서 이미 20% 증가됨
+    min_d, max_d = co.team_hp_damage;
     dmg = random.randint(min_d, max_d); st.session_state.team_hp -= dmg
     st.session_state.hit_effect_player = True
     st.toast(f"❤️ 팀 체력 -{dmg}!", icon="💔")
@@ -665,7 +660,7 @@ def enemy_turn():
     elif "도피" in act or "잠적" in act or "시간" in act: log_icon = "⏳"
     prefix = f"{log_icon} [기업]" if not (co.size in ["대기업", "외국계", "글로벌 기업"] and "로펌" in act) else f"{log_icon} [로펌]"; log_message(f"{prefix} {act} (팀 사기 저하 ❤️-{dmg}!)", "error")
 
-# --- [수정] 전투 승리 시 35% 확률로 도구/팀원 추가 획득 로직 ---
+# --- [수정] 전투 승리 시 35% 확률 보상 처리 방식 변경 ---
 def check_battle_end():
     company = st.session_state.current_battle_company
     if company.current_collected_tax >= company.tax_target:
@@ -676,37 +671,40 @@ def check_battle_end():
         heal_amount = int(st.session_state.team_max_hp * 0.3)
         st.session_state.team_hp = min(st.session_state.team_max_hp, st.session_state.team_hp + heal_amount)
         log_message(f"🩺 [전투 승리] 팀 정비. (체력 +{heal_amount})", "success")
-        st.toast(f"팀 체력 +{heal_amount} 회복!", icon="❤️")
-
-        # --- [신규] 35% 확률로 조사 도구 추가 획득 ---
-        if random.random() < 0.35:
-            current_artifact_names = [art.name for art in st.session_state.player_artifacts]
-            available_artifacts = [art for art in ARTIFACT_DB.values() if art.name not in current_artifact_names]
-            if available_artifacts:
-                new_artifact = random.choice(available_artifacts)
-                st.session_state.player_artifacts.append(new_artifact)
-                log_message(f"🎁 [전리품] 새로운 조사 도구 '{new_artifact.name}' 획득!", "success")
-                st.toast(f"🎁 도구 획득: {new_artifact.name}!", icon="🧰")
-                recalculate_team_stats()
-
-        # --- [신규] 35% 확률로 팀원 추가 획득 ---
-        if random.random() < 0.35:
-            current_member_names = [m.name for m in st.session_state.player_team]
-            available_members = [m for m in TAX_MAN_DB.values() if m.name not in current_member_names]
-            if available_members:
-                new_member = random.choice(available_members)
-                st.session_state.player_team.append(new_member)
-                log_message(f"👥 [지원군] '{new_member.name}' 조사관 합류!", "success")
-                st.toast(f"👥 팀원 합류: {new_member.name}!", icon="👨‍💼")
-                recalculate_team_stats()
-
-        st.session_state.game_state = "REWARD"
         last_card_text = ""
         if st.session_state.player_discard:
             try: last_card_text = st.session_state.player_discard[-1].text
             except IndexError: pass
         st.toast(f"승리! \"{last_card_text}\"" if last_card_text else "승리!", icon="🎉")
+
+        # --- 보너스 보상 임시 저장 및 상태 변경 ---
+        st.session_state.bonus_reward_artifact = None
+        st.session_state.bonus_reward_member = None
+        next_state = "REWARD"
+
+        if random.random() < 0.35:
+            current_artifact_names = [art.name for art in st.session_state.player_artifacts]
+            available_artifacts = [art for art in ARTIFACT_DB.values() if art.name not in current_artifact_names]
+            if available_artifacts:
+                new_artifact = random.choice(available_artifacts)
+                st.session_state.bonus_reward_artifact = new_artifact
+                log_message(f"🎁 [전리품 발견] 새로운 조사 도구 '{new_artifact.name}' 발견!", "info")
+                next_state = "REWARD_BONUS"
+
+        if next_state != "REWARD_BONUS" and random.random() < 0.35:
+            current_member_names = [m.name for m in st.session_state.player_team]
+            available_members = [m for m in TAX_MAN_DB.values() if m.name not in current_member_names]
+            if available_members:
+                new_member = random.choice(available_members)
+                st.session_state.bonus_reward_member = new_member
+                log_message(f"👥 [지원군 발견] '{new_member.name}' 조사관 발견!", "info")
+                next_state = "REWARD_BONUS"
+
+        st.session_state.game_state = next_state
+        # --- 수정 끝 ---
+
         return True
+
     if st.session_state.team_hp <= 0:
         st.session_state.team_hp = 0
         log_message("‼️ [조사 중단] 팀 체력 소진...", "error")
@@ -718,20 +716,17 @@ def start_battle(co_template):
     co = copy.deepcopy(co_template); st.session_state.current_battle_company = co; st.session_state.game_state = "BATTLE"; st.session_state.battle_log = [f"--- {co.name} ({co.size}) 조사 시작 ---"]
     log_message(f"🏢 **{co.name}** 주요 탈루 혐의:", "info"); t_types = set();
     for t in co.tactics:
-        # tax_type 처리
+        tax_str = "타입 오류"
         if isinstance(t.tax_type, list):
-             tax = [tx.value for tx in t.tax_type if hasattr(tx, 'value')]
+            valid_types = [tx.value for tx in t.tax_type if hasattr(tx, 'value')]
+            if valid_types: tax_str = '/'.join(valid_types)
         elif hasattr(t.tax_type, 'value'):
-             tax = [t.tax_type.value]
-        else:
-             tax = ["타입 오류"]
-        # method_type 처리
+            tax_str = t.tax_type.value
         method_val = t.method_type.value if hasattr(t.method_type, 'value') else "메소드 오류"
-        # tactic_category 처리
         category_val = t.tactic_category.value if hasattr(t.tactic_category, 'value') else "카테고리 오류"
 
-        log_message(f"- **{t.name}** ({'/'.join(tax)}, {method_val}, {category_val})", "info")
-        if hasattr(t.method_type, 'value'): # method_type이 유효한 경우에만 추가
+        log_message(f"- **{t.name}** ({tax_str}, {method_val}, {category_val})", "info")
+        if hasattr(t.method_type, 'value'):
             t_types.add(t.method_type)
 
     log_message("---", "info"); guide = "[조사 가이드] "; has_g = False
@@ -763,6 +758,10 @@ def go_to_next_stage(add_card=None):
     if add_card: st.session_state.player_deck.append(add_card); st.toast(f"[{add_card.name}] 덱 추가!", icon="🃏")
 
     if 'reward_cards' in st.session_state: del st.session_state.reward_cards
+    # 보너스 보상 임시 저장소 클리어
+    if 'bonus_reward_artifact' in st.session_state: st.session_state.bonus_reward_artifact = None
+    if 'bonus_reward_member' in st.session_state: st.session_state.bonus_reward_member = None
+
     st.session_state.current_stage_level += 1;
     if st.session_state.current_stage_level >= len(st.session_state.company_order):
         st.session_state.game_state = "GAME_CLEAR"
@@ -849,16 +848,16 @@ def show_map_screen():
                     for i, t in enumerate(co.tactics):
                         try:
                             # --- AttributeError 방지 ---
+                            t_types_str = "타입 오류"
                             if isinstance(t.tax_type, list):
-                                t_types = [tx.value for tx in t.tax_type if hasattr(tx, 'value')]
+                                valid_types = [tx.value for tx in t.tax_type if hasattr(tx, 'value')]
+                                if valid_types: t_types_str = '/'.join(valid_types)
                             elif hasattr(t.tax_type, 'value'):
-                                t_types = [t.tax_type.value]
-                            else:
-                                t_types = ["타입 오류"]
+                                t_types_str = t.tax_type.value
                             method_val = t.method_type.value if hasattr(t.method_type, 'value') else "메소드 오류"
                             category_val = t.tactic_category.value if hasattr(t.tactic_category, 'value') else "카테고리 오류"
                             # --- 수정 끝 ---
-                            st.markdown(f"**📌 {t.name}** (`{'/'.join(t_types)}`, `{method_val}`, `{category_val}`)\n> _{t.description}_")
+                            st.markdown(f"**📌 {t.name}** (`{t_types_str}`, `{method_val}`, `{category_val}`)\n> _{t.description}_")
                         except Exception as e:
                             st.error(f"혐의 '{t.name}' 표시 중 오류 발생: {e}")
 
@@ -917,8 +916,8 @@ def show_battle_screen():
                         # 혐의 정보 표시 시 .value 접근 안전하게 처리
                         t_types_str = "타입 오류"
                         if isinstance(t.tax_type, list):
-                            t_types = [tx.value for tx in t.tax_type if hasattr(tx, 'value')]
-                            if t_types: t_types_str = '/'.join(t_types)
+                            valid_types = [tx.value for tx in t.tax_type if hasattr(tx, 'value')]
+                            if valid_types: t_types_str = '/'.join(valid_types)
                         elif hasattr(t.tax_type, 'value'):
                             t_types_str = t.tax_type.value
                         method_val = t.method_type.value if hasattr(t.method_type, 'value') else "메소드 오류"
@@ -930,14 +929,14 @@ def show_battle_screen():
                             if st.session_state.selected_card_index < len(st.session_state.player_hand):
                                 card = st.session_state.player_hand[st.session_state.selected_card_index]
                                 # is_tax, is_cat 계산 시 card의 속성(list)과 tactic의 속성(list or object) 비교
-                                card_tax_values = [ct.value for ct in card.tax_type]
+                                card_tax_values = [ct.value for ct in card.tax_type if hasattr(ct, 'value')]
                                 tactic_tax_values = []
                                 if isinstance(t.tax_type, list):
                                     tactic_tax_values = [tt.value for tt in t.tax_type if hasattr(tt, 'value')]
                                 elif hasattr(t.tax_type, 'value'):
                                     tactic_tax_values = [t.tax_type.value]
 
-                                card_cat_values = [cc.value for cc in card.attack_category]
+                                card_cat_values = [cc.value for cc in card.attack_category if hasattr(cc, 'value')]
                                 tactic_cat_value = t.tactic_category.value if hasattr(t.tactic_category, 'value') else None
 
                                 is_tax = (TaxType.COMMON.value in card_tax_values) or any(ttv in card_tax_values for ttv in tactic_tax_values)
@@ -1022,8 +1021,75 @@ def show_battle_screen():
                         select_card_to_play(i)
         # --- 손패 UI 축소 끝 ---
 
-# --- [수정] 팀 정비 탭 제거 ---
+# --- [신규] 보너스 보상 확인 화면 함수 ---
+def show_reward_bonus_screen():
+    st.header("✨ 추가 보상 발견!")
+    st.markdown("---")
+
+    reward_artifact = st.session_state.get('bonus_reward_artifact', None)
+    reward_member = st.session_state.get('bonus_reward_member', None)
+
+    if reward_artifact:
+        st.subheader("🎁 새로운 조사 도구를 발견했습니다!")
+        with st.container(border=True):
+            st.markdown(f"**{reward_artifact.name}**")
+            st.write(reward_artifact.description)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("👍 획득하기", use_container_width=True, type="primary"):
+                st.session_state.player_artifacts.append(reward_artifact)
+                log_message(f"🎁 조사 도구 '{reward_artifact.name}' 정식 획득!", "success")
+                st.toast(f"획득: {reward_artifact.name}", icon="🧰")
+                recalculate_team_stats()
+                st.session_state.bonus_reward_artifact = None
+                st.session_state.game_state = "REWARD"
+                st.rerun()
+        with col2:
+            if st.button("👎 포기하기", use_container_width=True):
+                log_message(f"🗑️ 조사 도구 '{reward_artifact.name}' 획득 포기.", "warning")
+                st.session_state.bonus_reward_artifact = None
+                st.session_state.game_state = "REWARD"
+                st.rerun()
+
+    elif reward_member:
+        st.subheader("👥 새로운 팀원이 합류를 기다립니다!")
+        with st.container(border=True):
+            st.markdown(f"**{reward_member.name}**")
+            st.write(f"({reward_member.description})")
+            st.info(f"**{reward_member.ability_name}**: {reward_member.ability_desc}")
+            st.caption(f"HP: {reward_member.hp}, 집중력: {reward_member.focus}, 분석:{reward_member.analysis}, 설득:{reward_member.persuasion}, 증거:{reward_member.evidence}, 데이터:{reward_member.data}")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("👍 영입하기", use_container_width=True, type="primary"):
+                st.session_state.player_team.append(reward_member)
+                log_message(f"👥 '{reward_member.name}' 조사관 정식 합류!", "success")
+                st.toast(f"합류: {reward_member.name}", icon="👨‍💼")
+                recalculate_team_stats()
+                st.session_state.bonus_reward_member = None
+                st.session_state.game_state = "REWARD"
+                st.rerun()
+        with col2:
+            if st.button("👎 거절하기", use_container_width=True):
+                log_message(f"🚶 '{reward_member.name}' 조사관 영입 거절.", "warning")
+                st.session_state.bonus_reward_member = None
+                st.session_state.game_state = "REWARD"
+                st.rerun()
+    else:
+        st.warning("표시할 추가 보상이 없습니다. 카드 선택 화면으로 이동합니다.")
+        time.sleep(1)
+        st.session_state.game_state = "REWARD"
+        st.rerun()
+
+# --- [수정] 팀 정비 탭 제거, 보너스 보상 리다이렉트 추가 ---
 def show_reward_screen():
+    # 아직 처리 안 된 보너스 보상이 있으면 REWARD_BONUS로 리다이렉트
+    if st.session_state.get('bonus_reward_artifact') or st.session_state.get('bonus_reward_member'):
+        st.session_state.game_state = "REWARD_BONUS"
+        st.rerun()
+        return
+
     st.header("🎉 조사 승리!"); st.balloons(); co = st.session_state.current_battle_company; st.success(f"**{co.name}** 조사 완료. 총 {co.current_collected_tax:,}억원 추징."); st.markdown("---")
 
     if st.session_state.current_stage_level >= len(st.session_state.company_order) - 1:
@@ -1049,9 +1115,10 @@ def show_reward_screen():
     for i, card in enumerate(st.session_state.reward_cards):
         with cols[i]:
             with st.container(border=True):
-                types=[t.value for t in card.tax_type]; cats=[c.value for c in card.attack_category];
-                st.markdown(f"**{card.name}**|비용:{card.cost}🧠");
-                st.caption(f"세목:`{'`,`'.join(types)}`|유형:`{'`,`'.join(cats)}`"); st.markdown(card.description);
+                types_values = [t.value for t in card.tax_type if hasattr(t, 'value')]
+                cats_values = [c.value for c in card.attack_category if hasattr(c, 'value')]
+                st.markdown(f"**{card.name}**|비용:{card.cost}🧠"); # 기본 비용 표시
+                st.caption(f"세목:`{'`,`'.join(types_values)}`|유형:`{'`,`'.join(cats_values)}`"); st.markdown(card.description);
                 if card.base_damage > 0: st.info(f"**기본 적출액:** {card.base_damage} 억원")
                 elif card.special_effect and card.special_effect.get("type") == "draw": st.info(f"**드로우:** +{card.special_effect.get('value', 0)}")
                 if card.special_bonus: st.warning(f"**보너스:** {card.special_bonus.get('bonus_desc')}")
@@ -1118,7 +1185,8 @@ def main():
     st.set_page_config(page_title="세무조사 덱빌딩", layout="wide", initial_sidebar_state="expanded")
     if 'game_state' not in st.session_state: st.session_state.game_state = "MAIN_MENU"
 
-    running = ["MAP", "BATTLE", "REWARD"]
+    # 'REWARD_BONUS' 상태 추가
+    running = ["MAP", "BATTLE", "REWARD", "REWARD_BONUS"]
 
     if st.session_state.game_state in running and 'player_team' not in st.session_state:
         st.toast("⚠️ 세션 만료, 메인 메뉴로."); st.session_state.game_state = "MAIN_MENU"; st.rerun(); return
@@ -1129,6 +1197,7 @@ def main():
         "MAP": show_map_screen,
         "BATTLE": show_battle_screen,
         "REWARD": show_reward_screen,
+        "REWARD_BONUS": show_reward_bonus_screen, # 상태와 함수 연결
         "GAME_OVER": show_game_over_screen,
         "GAME_CLEAR": show_game_clear_screen
     }
@@ -1140,6 +1209,7 @@ def main():
         st.session_state.game_state = "MAIN_MENU"
         st.rerun()
 
+    # REWARD_BONUS 상태에서도 사이드바 표시
     if st.session_state.game_state not in ["MAIN_MENU", "GAME_OVER", "GAME_SETUP_DRAFT", "GAME_CLEAR"] and 'player_team' in st.session_state:
         show_player_status_sidebar()
 
