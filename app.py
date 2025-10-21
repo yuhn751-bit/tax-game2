@@ -10,13 +10,13 @@ class TaxType(str, Enum): CORP = "법인세"; VAT = "부가세"; COMMON = "공�
 class AttackCategory(str, Enum): COST = "비용"; REVENUE = "수익"; CAPITAL = "자본"; COMMON = "공통"
 class MethodType(str, Enum): INTENTIONAL = "고의적 누락"; ERROR = "단순 오류"; CAPITAL_TX = "자본 거래"
 
-# --- 헬퍼 함수 ---
+# --- 헬퍼 함수 (SyntaxError 수정) ---
 def format_krw(amount):
     if amount is None: return "N/A"
     try:
-        if abs(amount) >= 1_000_000: return f"{amount / 1_000_000:,.1f}조원"
-        elif abs(amount) >= 10_000: return f"{amount / 10_000:,.0f}억원"
-        elif abs(amount) >= 100: return f"{amount / 100:,.0f}억원"
+        if abs(amount) >= 1_000_000: return f"{amount / 1_000_000:,.1f}조원" # 수정: / 추가
+        elif abs(amount) >= 10_000: return f"{amount / 10_000:,.0f}억원" # 수정: / 추가
+        elif abs(amount) >= 100: return f"{amount / 100:,.0f}억원" # 수정: / 추가
         else: return f"{amount:,.0f}백만원"
     except Exception: return f"{amount} (Format Error)"
 
@@ -71,12 +71,12 @@ TAX_MAN_DB = {
 }
 # [수정] 기본 카드 데미지 하향
 LOGIC_CARD_DB = {
-    "c_tier_01": LogicCard(name="단순 자료 대사", cost=0, base_damage=4, tax_type=[TaxType.COMMON], attack_category=[AttackCategory.COMMON], description="매입/매출 자료 단순 비교.", text="자료 대사 기본 습득."), # 5 -> 4
+    "c_tier_01": LogicCard(name="단순 자료 대사", cost=0, base_damage=4, tax_type=[TaxType.COMMON], attack_category=[AttackCategory.COMMON], description="매입/매출 자료 단순 비교.", text="자료 대사 기본 습득."),
     "c_tier_02": LogicCard(name="법령 재검토", cost=0, base_damage=0, tax_type=[TaxType.COMMON], attack_category=[AttackCategory.COMMON], description="카드 1장 뽑기.", text="관련 법령 재검토.", special_effect={"type": "draw", "value": 1}),
     "util_01": LogicCard(name="초과근무", cost=1, base_damage=0, tax_type=[TaxType.COMMON], attack_category=[AttackCategory.COMMON], description="카드 2장 뽑기.", text="밤샘 근무로 단서 발견!", special_effect={"type": "draw", "value": 2}),
-    "basic_01": LogicCard(name="기본 경비 적정성 검토", cost=1, base_damage=8, tax_type=[TaxType.CORP], attack_category=[AttackCategory.COST], description="기본 비용 처리 적정성 검토.", text="법인세법 비용 조항 분석."), # 10 -> 8
-    "basic_02": LogicCard(name="단순 경비 처리 오류 지적", cost=1, base_damage=10, tax_type=[TaxType.CORP], attack_category=[AttackCategory.COST], description="증빙 미비 경비 지적.", text="증빙 대조 기본 습득."), # 12 -> 10
-    "b_tier_04": LogicCard(name="세금계산서 대사", cost=1, base_damage=12, tax_type=[TaxType.VAT], attack_category=[AttackCategory.REVENUE, AttackCategory.COST], description="매입/매출 세금계산서 합계표 대조.", text="합계표 불일치 확인."), # 15 -> 12
+    "basic_01": LogicCard(name="기본 경비 적정성 검토", cost=1, base_damage=8, tax_type=[TaxType.CORP], attack_category=[AttackCategory.COST], description="기본 비용 처리 적정성 검토.", text="법인세법 비용 조항 분석."),
+    "basic_02": LogicCard(name="단순 경비 처리 오류 지적", cost=1, base_damage=10, tax_type=[TaxType.CORP], attack_category=[AttackCategory.COST], description="증빙 미비 경비 지적.", text="증빙 대조 기본 습득."),
+    "b_tier_04": LogicCard(name="세금계산서 대사", cost=1, base_damage=12, tax_type=[TaxType.VAT], attack_category=[AttackCategory.REVENUE, AttackCategory.COST], description="매입/매출 세금계산서 합계표 대조.", text="합계표 불일치 확인."),
     "c_tier_03": LogicCard(name="가공 증빙 수취 분석", cost=2, base_damage=15, tax_type=[TaxType.CORP, TaxType.VAT], attack_category=[AttackCategory.COST], description="실물 거래 없이 세금계산서만 수취한 정황을 분석합니다.", text="가짜 세금계산서 흐름 파악."),
     "corp_01": LogicCard(name="접대비 한도 초과", cost=2, base_damage=25, tax_type=[TaxType.CORP], attack_category=[AttackCategory.COST], description="법정 한도를 초과한 접대비를 비용으로 처리한 부분을 지적합니다.", text="법인세법 접대비 조항 습득."),
     "b_tier_03": LogicCard(name="판례 제시", cost=2, base_damage=22, tax_type=[TaxType.COMMON], attack_category=[AttackCategory.COMMON], description="유사한 탈루 또는 오류 사례에 대한 과거 판례를 제시하여 설득합니다.", text="대법원 판례 제시.", special_bonus={'target_method': MethodType.ERROR, 'multiplier': 2.0, 'bonus_desc': '단순 오류에 2배 피해'}),
@@ -114,7 +114,7 @@ COMPANY_DB = [
             EvasionTactic("매출 누락 (개인 계좌)", "고객으로부터 받은 **현금 매출** 및 **계좌 이체** 대금 중 **3억원**을 대표 개인 계좌로 받아 **매출 신고 누락**.", 3, [TaxType.CORP, TaxType.VAT], MethodType.INTENTIONAL, AttackCategory.REVENUE)
         ], defense_actions=["담당 세무사가 '실수' 주장.", "대표가 '개인 돈 썼다'고 항변.", "경리 직원이 '몰랐다' 시전."]
     ),
-    Company( # 10등
+    Company( # 10등 (신규 이름 수정)
         name="㈜쿠팡 (Koopang)", size="중견기업", revenue=300000, operating_income=10000, tax_target=50, team_hp_damage=(10, 20),
         description="빠른 배송으로 유명한 **E-커머스 플랫폼**. **쿠폰 발행**, **포인트 적립** 등 프로모션 비용이 막대함.",
         real_case_desc="""[교육] **E-커머스 플랫폼**은 **고객 유치 비용**(쿠폰, 적립금)의 회계 처리가 쟁점입니다.
@@ -166,7 +166,7 @@ COMPANY_DB = [
     ),
 
     # --- A Group (Hard, 3-5th) ---
-    Company( # 5등 (신규)
+    Company( # 5등
         name="(주)로때 (Lottea)", size="대기업", revenue=30_000_000, operating_income=1_000_000, tax_target=800, team_hp_damage=(18, 30),
         description="**유통, 화학, 건설** 등 다수 계열사 보유 **대기업 그룹**. **순환출자** 구조 및 **경영권 분쟁** 이력.",
         real_case_desc="""[교육] 복잡한 **순환출자** 구조를 가진 대기업은 **그룹사 간 부당 지원** 및 **자본 거래**를 통한 이익 분여가 잦습니다.
@@ -212,7 +212,7 @@ COMPANY_DB = [
         ], defense_actions=["미국 본사 '**기술 이전 계약**' 근거 정상 거래 주장.", "**조세 조약** 및 **OECD 가이드라인** 해석 다툼 예고.", "**상호합의절차(MAP)** 신청 통한 시간 끌기 전략.", "각국 과세 당국 간 **정보 부족** 악용."]
     ),
     Company( # 1등 (신규)
-        name="아마존 코리아(유) (Amezon)", size="글로벌 기업", revenue=20_000_000, operating_income=500_000, tax_target=1800, team_hp_damage=(30, 50),
+        name="아마존 코리아 (Amezon)", size="글로벌 기업", revenue=20_000_000, operating_income=500_000, tax_target=1800, team_hp_damage=(30, 50),
         description="세계 최대 **E-커머스** 및 **클라우드 서비스** 기업. 국내 **물류센터** 운영 및 **AWS** 사업 활발.",
         real_case_desc="""[교육] **클라우드 컴퓨팅** 및 **E-커머스** 기업은 **서버**와 **물류센터**의 법적 성격이 핵심 쟁점입니다.
 * **고정사업장(PE) 쟁점**: 국내 **데이터센터(서버)**나 **물류창고**가 단순 **보관/지원** 기능을 넘어 **핵심 사업 활동**을 수행하는지 여부. **고정사업장**으로 판명 시 막대한 **법인세** 추징 가능.
@@ -273,6 +273,9 @@ def initialize_game(chosen_lead: TaxManCard, chosen_artifact: Artifact):
 # --- 4. 게임 로직 함수 ---
 
 def start_player_turn():
+    # [수정] 플레이어 피격 효과 리셋
+    st.session_state.hit_effect_player = False
+
     focus = sum(m.focus for m in st.session_state.player_team); st.session_state.player_focus_current=focus
     if "임향수" in [m.name for m in st.session_state.player_team]:
         st.session_state.player_focus_current+=1
@@ -375,7 +378,7 @@ def calculate_card_cost(card):
             cost = max(0, cost + art.effect["value"])
     return cost
 
-def execute_attack(card_index, tactic_index): # [수정] 스테이지 보너스, 로그 강화, 잔여 혐의
+def execute_attack(card_index, tactic_index): # [수정] 스테이지 보너스, 로그 강화, 잔여 혐의, 페널티 제거
     if card_index is None or card_index >= len(st.session_state.player_hand):
         st.toast("오류: 잘못된 카드 인덱스.", icon="🚨"); st.session_state.selected_card_index = None; st.rerun(); return
     card = st.session_state.player_hand[card_index]; cost = calculate_card_cost(card)
@@ -384,22 +387,19 @@ def execute_attack(card_index, tactic_index): # [수정] 스테이지 보너스,
     tactic = ResidualTactic(company.tax_target - company.current_collected_tax) if is_residual else company.tactics[tactic_index]
     if st.session_state.player_focus_current < cost: st.toast(f"집중력 부족! ({cost})", icon="🧠"); st.session_state.selected_card_index = None; st.rerun(); return
 
-    is_tax = is_residual or (TaxType.COMMON in card.tax_type) or (isinstance(tactic.tax_type, list) and any(tt in card.tax_type for tt in tactic.tax_type)) or (tactic.tax_type in card.tax_type)
-    if not is_tax:
-        t_types = [t.value for t in tactic.tax_type] if isinstance(tactic.tax_type, list) else [t.tax_type.value];
-        log_message(f"❌ [세목 불일치!] '{card.name}' -> '{', '.join(t_types)}' (❤️-10)", "error"); st.session_state.team_hp -= 10;
-        st.session_state.player_discard.append(st.session_state.player_hand.pop(card_index)); st.session_state.selected_card_index = None; check_battle_end(); st.rerun(); return
-    is_cat = is_residual or (AttackCategory.COMMON in card.attack_category) or (tactic.tactic_category in card.attack_category)
-    if not is_cat:
-        log_message(f"🚨 [유형 불일치!] '{card.name}' -> '{tactic.tactic_category.value}' ({tactic.name}) (❤️-5)", "error"); st.session_state.team_hp -= 5;
-        st.session_state.player_discard.append(st.session_state.player_hand.pop(card_index)); st.session_state.selected_card_index = None; check_battle_end(); st.rerun(); return
+    # --- [수정] 페널티 로직 제거 (버튼 비활성화로 대체됨) ---
+    # is_tax = ...
+    # if not is_tax: ...
+    # is_cat = ...
+    # if not is_cat: ...
 
+    # --- 비용 지불 ---
     st.session_state.player_focus_current -= cost;
     if st.session_state.get('turn_first_card_played', True): st.session_state.turn_first_card_played = False
 
     # --- [수정] 스테이지 보너스 & 데미지 스케일링 ---
     base = card.base_damage; stage_bonus = 0; stage_bonus_log = ""
-    basic_cards = ["단순 자료 대사", "기본 경비 적정성 검토", "단순 경비 처리 오류 지적", "세금계산서 대사"] # [수정] 세금계산서 대사 포함
+    basic_cards = ["단순 자료 대사", "기본 경비 적정성 검토", "단순 경비 처리 오류 지적", "세금계산서 대사"]
     current_stage = st.session_state.current_stage_level # 0, 1, 2, 3
     if card.name in basic_cards:
         if current_stage == 3: stage_bonus = 50 # Stage 4 (S-Group)
@@ -409,6 +409,7 @@ def execute_attack(card_index, tactic_index): # [수정] 스테이지 보너스,
     base_with_bonus = base + stage_bonus
     ref = 500; scale = (company.tax_target / ref)**0.5 if company.tax_target > 0 else 0.5; capped = max(0.5, min(2.0, scale)); scaled = int(base_with_bonus * capped); scale_log = f" (규모 보정: {base_with_bonus}→{scaled})" if capped != 1.0 or stage_bonus > 0 else ""; damage = scaled
     
+    # --- 팀 스탯 보너스 ---
     team_stats = st.session_state.team_stats; team_bonus = 0
     if any(c in [AttackCategory.COST, AttackCategory.COMMON] for c in card.attack_category): team_bonus += int(team_stats["analysis"] * 0.5)
     if AttackCategory.CAPITAL in card.attack_category: team_bonus += int(team_stats["data"] * 1.0)
@@ -424,15 +425,16 @@ def execute_attack(card_index, tactic_index): # [수정] 스테이지 보너스,
         bonus = int(team_stats["evidence"] * 0.1)
         if bonus > 0: damage += bonus; log_message(f"✨ [심층 기획] +{bonus}!", "info")
 
+    # --- 최종 피해 배율 ---
     mult = 1.0; mult_log = ""
     if not is_residual and card.special_bonus and card.special_bonus.get('target_method') == tactic.method_type:
         m = card.special_bonus.get('multiplier', 1.0); mult *= m; mult_log += f"🔥[{card.special_bonus.get('bonus_desc')}] "
         if "조용규" in [m.name for m in st.session_state.player_team] and card.name == "판례 제시": mult *= 2; mult_log += "✨[세법 교본 x2] "
-    if "한중후" in [m.name for m in st.session_state.player_team] and (company.size == "외국계" or tactic.method_type == MethodType.CAPITAL_TX): mult *= 1.3; mult_log += "✨[역외탈세 +30%] "
-    if "서영택" in [m.name for m in st.session_state.player_team] and (company.size == "대기업" or company.size == "외국계") and TaxType.CORP in card.tax_type: mult *= 1.25; mult_log += "✨[대기업 +25%] "
+    if "한중후" in [m.name for m in st.session_state.player_team] and (company.size == "외국계" or company.size == "글로벌 기업" or tactic.method_type == MethodType.CAPITAL_TX): mult *= 1.3; mult_log += "✨[역외탈세 +30%] "
+    if "서영택" in [m.name for m in st.session_state.player_team] and (company.size in ["대기업", "외국계", "글로벌 기업"]) and TaxType.CORP in card.tax_type: mult *= 1.25; mult_log += "✨[대기업 +25%] "
     if "이현동" in [m.name for m in st.session_state.player_team] and tactic.method_type == MethodType.INTENTIONAL: mult *= 1.2; mult_log += "✨[지하경제 +20%] "
-    final_dmg = int(damage * mult); overkill = 0; overkill_contrib = 0;
     
+    final_dmg = int(damage * mult); overkill = 0; overkill_contrib = 0;
     if is_residual: dmg_tactic = final_dmg
     else:
         remain = tactic.total_amount - tactic.exposed_amount; dmg_tactic = min(final_dmg, remain);
@@ -440,9 +442,10 @@ def execute_attack(card_index, tactic_index): # [수정] 스테이지 보너스,
         tactic.exposed_amount += dmg_tactic;
     company.current_collected_tax += (dmg_tactic + overkill_contrib)
 
-    # --- [수정] 로그 강화 및 타격감(Toast) ---
+    # --- [수정] 타격감(Toast, 이펙트) 및 로그 강화 ---
     attack_emoji = "💥"; prefix = "▶️ [적중]"
-    if mult >= 2.0: prefix = "💥 [치명타!]"; st.balloons() # 치명타 시 이펙트
+    is_crit = mult >= 2.0
+    if is_crit: prefix = "💥 [치명타!]"; st.balloons() # 치명타 시 이펙트
     elif mult > 1.0: prefix = "👍 [효과적!]"
     if AttackCategory.COST in card.attack_category: attack_emoji = "💸"
     elif AttackCategory.REVENUE in card.attack_category: attack_emoji = "📈"
@@ -452,16 +455,19 @@ def execute_attack(card_index, tactic_index): # [수정] 스테이지 보너스,
     elif AttackCategory.COMMON in card.attack_category: attack_emoji = "📄"
     
     st.toast(f"{attack_emoji} {final_dmg}억원!", icon=attack_emoji) # 타격감 Toast
+    # [신규] 강력한 타격 시 시각 효과 플래그 설정
+    if is_crit or (final_dmg > company.tax_target * 0.2): # 치명타 또는 목표액 20% 이상 타격
+        st.session_state.hit_effect_company = True
+
     log_message(f"{prefix} '{card.name}' → '{tactic.name}'에 **{final_dmg}억원** 피해!{stage_bonus_log}{scale_log}", "success")
-    if mult_log: log_message(f" ㄴ {mult_log}", "info")
-    
+    if mult_log: log_message(f"  ㄴ {mult_log}", "info")
     if not is_residual:
         if "금융" in card.name: log_message(f"💬 금융 분석팀: 의심스러운 자금 흐름 포착!", "info")
-        elif "차명" in card.name: log_message(f"💬 조사팀: 은닉 계좌 추적 성공!", "warning")
+        elif "차명" in card.name: log_message(f"💬 조사팀: 은닉 계좌 추적 성공! 자금 흐름 확보!", "warning")
         elif "압수" in card.name: log_message(f"💬 현장팀: 결정적 증거물 확보!", "warning")
         elif "출처" in card.name: log_message(f"💬 조사팀: 자금 출처 소명 요구, 압박 수위 높임!", "info")
-        elif tactic.method_type == MethodType.INTENTIONAL and final_dmg > tactic.total_amount * 0.5: log_message(f"💬 조사팀: 고의적 탈루 정황 가중!", "warning")
-        elif tactic.method_type == MethodType.ERROR and '판례' in card.name: log_message(f"💬 법무팀: 유사 판례 제시로 설득 중...", "info")
+        elif tactic.method_type == MethodType.INTENTIONAL and final_dmg > tactic.total_amount * 0.5: log_message(f"💬 조사팀: 고의적 탈루 정황 가중! 추가 조사 필요.", "warning")
+        elif tactic.method_type == MethodType.ERROR and '판례' in card.name: log_message(f"💬 법무팀: 유사 판례 제시하여 납세자 설득 중...", "info")
         if final_dmg < 10 and damage > 0: log_message(f"💬 조사관: 꼼꼼하게 증빙 대조 중...", "info")
         elif final_dmg > 100: log_message(f"💬 조사팀장: 결정적인 한 방입니다!", "success")
     if overkill > 0: log_message(f"📈 [초과 기여] 혐의 초과 {overkill}억 중 {overkill_contrib}억 추가 세액 확보!", "info")
@@ -470,14 +476,13 @@ def execute_attack(card_index, tactic_index): # [수정] 스테이지 보너스,
         setattr(tactic, 'is_cleared', True); setattr(tactic, '_logged_clear', True)
         log_message(f"🔥 [{tactic.name}] 혐의 완전 적발 완료! (총 {tactic.total_amount}억원)", "warning")
         if "벤츠" in card.text: log_message("💬 [현장] 법인소유 벤츠 키 확보!", "info")
-        if "압수수색" in card.name: log_message("💬 [현장] 비밀장부 및 증거물 다수 확보!", "info")
+        if "압수수색" in card.name: log_message("💬 [현장] 비밀장부 및 관련 증거물 다수 확보!", "info")
 
     st.session_state.player_discard.append(st.session_state.player_hand.pop(card_index)); st.session_state.selected_card_index = None;
     check_battle_end(); st.rerun()
 
 # --- [수정됨] 자동 공격 로직 (HP 1 소모) ---
 def execute_auto_attack():
-    # [수정] HP 1 소모 페널티
     if st.session_state.team_hp <= 1:
         st.toast("⚡ 자동 공격을 사용하기엔 팀 체력이 너무 낮습니다!", icon="💔"); return
     
@@ -506,9 +511,9 @@ def execute_auto_attack():
              target_idx = len(company.tactics)
         
         if target_idx != -1:
-            # [수정] HP 1 소모 실행
-            st.session_state.team_hp -= 1
+            st.session_state.team_hp -= 1 # HP 1 소모
             log_message(f"⚡ 자동 공격 사용! (팀 체력 -1)", "warning")
+            st.toast("⚡ 자동 공격! (❤️-1)", icon="🤖")
             target_name = "[잔여 혐의 조사]" if target_idx >= len(company.tactics) else company.tactics[target_idx].name
             log_message(f"⚡ 자동 공격: '{current_card.name}' -> '{target_name}'!", "info")
             execute_attack(current_idx, target_idx)
@@ -526,17 +531,16 @@ def end_player_turn():
         start_player_turn()
         st.rerun()
 
-# --- [수정] 적 턴 이모지, 타격감(Toast) 추가 ---
-def enemy_turn():
+def enemy_turn(): # [수정] 타격감(Toast, 이펙트) 추가
     co = st.session_state.current_battle_company; act = random.choice(co.defense_actions); min_d, max_d = co.team_hp_damage; dmg = random.randint(min_d, max_d); st.session_state.team_hp -= dmg
+    st.session_state.hit_effect_player = True # 피격 효과 플래그
+    st.toast(f"❤️ 팀 체력 -{dmg}!", icon="💔") # 피격 타격감
     log_icon = "🏢"
     if "로펌" in act or "법무팀" in act or "법리" in act: log_icon = "⚖️"
     elif "자료" in act or "서버" in act or "장부" in act: log_icon = "📁"
     elif "압력" in act or "여론전" in act or "항변" in act: log_icon = "🗣️"
     elif "도피" in act or "잠적" in act or "시간" in act: log_icon = "⏳"
-    prefix = f"{log_icon} [기업]" if not (co.size in ["대기업", "외국계"] and "로펌" in act) else f"{log_icon} [로펌]"; 
-    log_message(f"{prefix} {act} (팀 사기 저하 ❤️-{dmg}!)", "error")
-    st.toast(f"❤️ 팀 체력 -{dmg}!", icon="💔") # 피격 타격감
+    prefix = f"{log_icon} [기업]" if not (co.size in ["대기업", "외국계", "글로벌 기업"] and "로펌" in act) else f"{log_icon} [로펌]"; log_message(f"{prefix} {act} (팀 사기 저하 ❤️-{dmg}!)", "error")
 
 def check_battle_end():
     company = st.session_state.current_battle_company
@@ -566,7 +570,7 @@ def start_battle(co_template):
         log_message(f"- **{t.name}** ({'/'.join(tax)}, {t.method_type.value}, {t.tactic_category.value})", "info"); t_types.add(t.method_type)
     log_message("---", "info"); guide = "[조사 가이드] "; has_g = False
     if MethodType.INTENTIONAL in t_types: guide += "고의 탈루: 증거 확보, 압박 중요. "; has_g = True
-    if MethodType.CAPITAL_TX in t_types or co.size in ["대기업", "글로벌 기업"]: guide += "자본/국제 거래: 자금 흐름, 법규 분석 필요. "; has_g = True
+    if MethodType.CAPITAL_TX in t_types or co.size in ["대기업", "외국계", "글로벌 기업"]: guide += "자본/국제 거래: 자금 흐름, 법규 분석 필요. "; has_g = True
     if MethodType.ERROR in t_types and MethodType.INTENTIONAL not in t_types: guide += "단순 오류: 규정/판례 제시, 설득 효과적. "; has_g = True
     log_message(guide if has_g else "[조사 가이드] 기업 특성/혐의 고려, 전략적 접근.", "warning"); log_message("---", "info")
     st.session_state.bonus_draw = 0
@@ -589,8 +593,7 @@ def go_to_next_stage(add_card=None, heal_amount=0):
     if heal_amount > 0: st.session_state.team_hp = min(st.session_state.team_max_hp, st.session_state.team_hp + heal_amount); st.toast(f"팀 휴식 (체력 +{heal_amount})", icon="❤️")
     if 'reward_cards' in st.session_state: del st.session_state.reward_cards
     st.session_state.current_stage_level += 1;
-    # [수정] 4 스테이지 클리어 시 게임 종료
-    if st.session_state.current_stage_level >= len(st.session_state.company_order): # 4가 되면 클리어
+    if st.session_state.current_stage_level >= len(st.session_state.company_order): # 4
         st.session_state.game_state = "GAME_CLEAR"
     else:
         st.session_state.game_state = "MAP"
@@ -598,7 +601,7 @@ def go_to_next_stage(add_card=None, heal_amount=0):
 
 # --- 5. UI 화면 함수 ---
 
-# --- [수정] st.image -> st.markdown (텍스트 로고) ---
+# --- [수정] st.image -> st.markdown, 워터마크 추가 ---
 def show_main_menu():
     st.title("💼 세무조사: 덱빌딩 로그라이크"); st.markdown("---")
     
@@ -618,7 +621,13 @@ def show_main_menu():
         st.session_state.game_state = "GAME_SETUP_DRAFT"; st.rerun()
     
     with st.expander("📖 게임 방법", expanded=True):
-        st.markdown("""**1.🎯 목표**: 총 4개 기업 조사 → **'목표 추징 세액'** 달성 시 승리.\n**2.⚔️ 전투**: ❤️ **팀 체력**(0 시 패배), 🧠 **집중력**(카드 비용).\n**3.⚠️ 패널티**: **세목 불일치**(❤️-10), **유형 불일치**(❤️-5).\n**4.✨ 보너스**: 혐의 유형(`고의`, `오류`, `자본`) 맞는 카드 사용 시 추가 피해!""")
+        # [수정] 4단계, 페널티 텍스트 제거
+        st.markdown("""
+        **1. 🎯 목표**: 총 4단계(중소→중견→대기업→글로벌)의 기업 조사를 완료하고 승리.
+        **2. ⚔️ 전투**: ❤️ **팀 체력**(0 시 패배), 🧠 **집중력**(카드 사용 자원).
+        **3. ✨ 보너스**: 혐의 유형(`고의`, `오류`, `자본`)에 맞는 카드 사용 시 추가 피해!
+        **4. 📈 성장**: 스테이지가 오를수록 기본 카드가 강해집니다.
+        """)
 
     # [신규] 워터마크
     st.markdown(
@@ -626,11 +635,12 @@ def show_main_menu():
         <style>
         .watermark {
             position: fixed;
-            bottom: 10px;
-            right: 15px;
-            opacity: 0.4;
-            font-size: 12px;
+            top: 20px; /* 위에서 20px */
+            left: 20px; /* 왼쪽에서 20px */
+            opacity: 0.5; /* 약간 투명하게 */
+            font-size: 14px; /* 조금 더 크게 */
             color: #777;
+            z-index: 100;
         }
         </style>
         <div class="watermark">
@@ -685,12 +695,19 @@ def show_map_screen(): # 4단계 구성으로 수정
         st.session_state.game_state = "GAME_CLEAR"
         st.rerun()
 
-def show_battle_screen(): # 잔여 혐의 표시 로직 추가
+def show_battle_screen(): # [수정] 타격감 효과 추가
     if not st.session_state.current_battle_company: st.error("오류: 기업 정보 없음..."); st.session_state.game_state = "MAP"; st.rerun(); return
     co = st.session_state.current_battle_company; st.title(f"⚔️ {co.name} 조사 중..."); st.markdown("---")
     col_co, col_log, col_hand = st.columns([1.6, 2.0, 1.4])
     with col_co:
-        st.subheader(f"🏢 {co.name} ({co.size})"); st.progress(min(1.0, co.current_collected_tax/co.tax_target if co.tax_target > 0 else 1.0), text=f"💰 목표 세액: {co.current_collected_tax:,}/{co.tax_target:,} (억원)"); st.markdown("---"); st.subheader("🧾 탈루 혐의 목록")
+        # [수정] 타격감: 피격 시 이름 변경
+        if st.session_state.get('hit_effect_company', False):
+            st.error(f"💥 **{co.name} ({co.size})** 💥")
+            st.session_state.hit_effect_company = False # 1회용 플래시
+        else:
+            st.subheader(f"🏢 {co.name} ({co.size})")
+        
+        st.progress(min(1.0, co.current_collected_tax/co.tax_target if co.tax_target > 0 else 1.0), text=f"💰 목표 세액: {co.current_collected_tax:,}/{co.tax_target:,} (억원)"); st.markdown("---"); st.subheader("🧾 탈루 혐의 목록")
         is_sel = st.session_state.get("selected_card_index") is not None
         if is_sel:
             if st.session_state.selected_card_index < len(st.session_state.player_hand):
@@ -723,17 +740,24 @@ def show_battle_screen(): # 잔여 혐의 표시 로직 추가
                         if is_sel and not cleared:
                             if st.session_state.selected_card_index < len(st.session_state.player_hand):
                                 card = st.session_state.player_hand[st.session_state.selected_card_index]
+                                # [수정] 페널티 로직 제거, 버튼 비활성화로 로직 처리
                                 is_tax = (TaxType.COMMON in card.tax_type) or (isinstance(t.tax_type, list) and any(tt in card.tax_type for tt in t.tax_type)) or (t.tax_type in card.tax_type)
                                 is_cat = (AttackCategory.COMMON in card.attack_category) or (t.tactic_category in card.attack_category)
                                 label, type, help = f"🎯 **{t.name}** 공격", "primary", "클릭하여 공격!"
                                 if card.special_bonus and card.special_bonus.get('target_method') == t.method_type: label = f"💥 [특효!] **{t.name}** 공격"; help = f"클릭! ({card.special_bonus.get('bonus_desc')})"
                                 disabled = False
-                                if not is_tax: label, type, help, disabled = f"⚠️ (세목 불일치!) {t.name}", "secondary", f"세목 불일치! ... (❤️-10)", True
-                                elif not is_cat: label, type, help, disabled = f"⚠️ (유형 불일치!) {t.name}", "secondary", f"유형 불일치! ... (❤️-5)", True
+                                if not is_tax: label, type, help, disabled = f"⚠️ (세목 불일치!)", "secondary", f"세목 불일치! '{', '.join(c.value for c in card.tax_type)}' 카드는 '{', '.join(t_types)}' 혐의에 사용 불가.", True
+                                elif not is_cat: label, type, help, disabled = f"⚠️ (유형 불일치!)", "secondary", f"유형 불일치! '{', '.join(c.value for c in card.attack_category)}' 카드는 '{t.tactic_category.value}' 혐의에 사용 불가.", True
                                 if st.button(label, key=f"attack_{i}", use_container_width=True, type=type, disabled=disabled, help=help):
                                     execute_attack(st.session_state.selected_card_index, i)
     with col_log:
-        st.subheader("❤️ 팀 현황"); c1, c2 = st.columns(2); c1.metric("팀 체력", f"{st.session_state.team_hp}/{st.session_state.team_max_hp}"); c2.metric("현재 집중력", f"{st.session_state.player_focus_current}/{st.session_state.player_focus_max}")
+        # [수정] 타격감: 피격 시 헤더 변경
+        if st.session_state.get('hit_effect_player', False):
+            st.error("💔 팀 현황 (피격!)")
+            st.session_state.hit_effect_player = False # 1회용 플래시
+        else:
+            st.subheader("❤️ 팀 현황")
+        c1, c2 = st.columns(2); c1.metric("팀 체력", f"{st.session_state.team_hp}/{st.session_state.team_max_hp}"); c2.metric("현재 집중력", f"{st.session_state.player_focus_current}/{st.session_state.player_focus_max}")
         if st.session_state.get('cost_reduction_active', False): st.info("✨ [실무 지휘] 다음 카드 비용 -1"); st.markdown("---")
         st.subheader("📋 조사 기록 (로그)"); log_cont = st.container(height=300, border=True);
         for log in st.session_state.battle_log: # 수정: for loop
@@ -758,15 +782,11 @@ def show_battle_screen(): # 잔여 혐의 표시 로직 추가
                 if st.button(btn_label, key=f"play_{i}", use_container_width=True, disabled=disabled, help=help):
                     select_card_to_play(i)
 
-def show_reward_screen(): # SyntaxError 수정됨
+def show_reward_screen(): # 4스테이지 클리어 분기
     st.header("🎉 조사 승리!"); st.balloons(); co = st.session_state.current_battle_company; st.success(f"**{co.name}** 조사 완료. 총 {co.current_collected_tax:,}억원 추징."); st.markdown("---")
     
-    # [수정] 마지막 스테이지(3) 클리어 후 리워드 대신 클리어 화면으로
     if st.session_state.current_stage_level >= len(st.session_state.company_order) - 1: # 0,1,2,3 -> 3일때
-        # 마지막 스테이지(index 3)를 방금 클리어했다면, 다음 레벨(4)로 가지 않고 GAME_CLEAR로
-        st.session_state.game_state = "GAME_CLEAR"
-        st.rerun()
-        return
+        st.session_state.game_state = "GAME_CLEAR"; st.rerun(); return
 
     t1, t2, t3 = st.tabs(["🃏 카드 획득 (택1)", "❤️ 팀 정비", "🗑️ 덱 정비"])
     with t1:
@@ -777,8 +797,7 @@ def show_reward_screen(): # SyntaxError 수정됨
             if has_cap:
                 cap_cards = [c for c in pool if AttackCategory.CAPITAL in c.attack_category and c not in opts]
                 if cap_cards:
-                    opts.append(random.choice(cap_cards))
-                    st.toast("ℹ️ [보상 가중치] '자본' 카드 1장 포함!")
+                    opts.append(random.choice(cap_cards)); st.toast("ℹ️ [보상 가중치] '자본' 카드 1장 포함!")
             remain = [c for c in pool if c not in opts]; num_add = 3 - len(opts)
             if len(remain) < num_add: opts.extend(random.sample(remain, len(remain)))
             else: opts.extend(random.sample(remain, num_add))
@@ -801,17 +820,23 @@ def show_reward_screen(): # SyntaxError 수정됨
         st.button(f"팀 정비 (+{heal} 회복)", on_click=go_to_next_stage, kwargs={'heal_amount': heal}, use_container_width=True)
     with t3:
         st.subheader("🗑️ 덱에서 기본 카드 1장 제거"); st.markdown("덱 압축으로 좋은 카드 뽑을 확률 증가.");
-        st.info("제거 대상: '단순 자료 대사', '기본 경비 적정성 검토', '단순 경비 처리 오류 지적'");
+        st.info("제거 대상: '단순 자료 대사', '기본 경비 적정성 검토', '단순 경비 처리 오류 지적', '세금계산서 대사'"); # 수정: 제거 대상
         st.button("기본 카드 제거하러 가기", on_click=lambda: st.session_state.update(game_state="REWARD_REMOVE"), use_container_width=True)
 
-def show_reward_remove_screen():
+def show_reward_remove_screen(): # UnboundLocalError 수정
     st.header("🗑️ 덱 정비 (카드 제거)"); st.markdown("제거할 기본 카드 1장 선택:")
-    deck = st.session_state.player_deck + st.session_state.player_discard; basics = ["단순 자료 대사", "기본 경비 적정성 검토", "단순 경비 처리 오류 지적", "세금계산서 대사"] # 수정: 제거 대상
-    removable = {name: card for card in deck if card.name in basics and card.name not in locals().get('removable', {})}
-    if not removable:
+    deck = st.session_state.player_deck + st.session_state.player_discard; basics = ["단순 자료 대사", "기본 경비 적정성 검토", "단순 경비 처리 오류 지적", "세금계산서 대사"]
+    
+    # [수정] UnboundLocalError 수정
+    removable_cards = {}
+    for card in deck:
+        if card.name in basics and card.name not in removable_cards:
+            removable_cards[card.name] = card
+    
+    if not removable_cards:
         st.warning("제거 가능한 기본 카드 없음."); st.button("맵으로 돌아가기", on_click=go_to_next_stage); return
-    cols = st.columns(len(removable))
-    for i, (name, card) in enumerate(removable.items()):
+    cols = st.columns(len(removable_cards))
+    for i, (name, card) in enumerate(removable_cards.items()):
         with cols[i]:
             with st.container(border=True):
                 st.markdown(f"**{card.name}** | 비용: {card.cost} 🧠"); st.markdown(card.description)
