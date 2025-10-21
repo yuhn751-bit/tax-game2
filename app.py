@@ -498,16 +498,28 @@ def go_to_next_stage(add_card=None, heal_amount=0):
 
 # --- 5. UI 화면 함수 --- (이하 동일, 리스트 컴프리헨션 -> for loop 수정)
 
+# --- [수정됨] show_main_menu (이미지 URL 변경, 세미콜론 제거) ---
 def show_main_menu():
-    st.title("💼 세무조사: 덱빌딩 로그라이크"); st.markdown("---"); st.header("국세청에 오신 것을 환영합니다.")
-    st.markdown("당신은 오늘부로 세무조사팀에 발령받았습니다..."); st.image("...", caption="국세청 전경", width=400)
+    st.title("💼 세무조사: 덱빌딩 로그라이크")
+    st.markdown("---") # 수정: 세미콜론 제거
+    st.header("국세청에 오신 것을 환영합니다.")
+    st.markdown("당신은 오늘부로 세무조사팀에 발령받았습니다. 기업들의 교묘한 탈루 혐의를 밝혀내고, 공정한 과세를 실현하십시오.") # 수정: 세미콜론 제거
+
+    # 수정: 이미지 URL 변경 및 caption 수정
+    st.image(
+        "https://img.etoday.co.kr/pto_db/2020/07/20200702151610_1483325_600_399.jpg",
+        caption="국세청 CI",
+        width=400
+    )
     st.session_state.seed = st.number_input("RNG 시드 (0 = 랜덤)", value=0, step=1, help="동일 시드로 반복 테스트 가능")
     if st.button("🚨 조사 시작", type="primary", use_container_width=True):
-        seed = st.session_state.get('seed', 0); random.seed(seed if seed != 0 else None)
+        seed = st.session_state.get('seed', 0);
+        random.seed(seed if seed != 0 else None) # 수정: 세미콜론 제거
         members = list(TAX_MAN_DB.values()); st.session_state.draft_team_choices = random.sample(members, min(len(members), 3))
         artifacts = list(ARTIFACT_DB.keys()); chosen_keys = random.sample(artifacts, min(len(artifacts), 3)); st.session_state.draft_artifact_choices = [ARTIFACT_DB[k] for k in chosen_keys]
-        st.session_state.game_state = "GAME_SETUP_DRAFT"; st.rerun()
-    with st.expander("📖 게임 방법", expanded=True): st.markdown("""**1.🎯 목표**: ...\n**2.⚔️ 전투**: ...\n**3.⚠️ 패널티**: ...\n**4.✨ 보너스**: ...""")
+        st.session_state.game_state = "GAME_SETUP_DRAFT"; st.rerun() # 수정: 세미콜론 제거
+    with st.expander("📖 게임 방법", expanded=True):
+        st.markdown("""**1.🎯 목표**: 기업 조사 → **'목표 추징 세액'** 달성 시 승리.\n**2.⚔️ 전투**: ❤️ **팀 체력**(0 시 패배), 🧠 **집중력**(카드 비용).\n**3.⚠️ 패널티**: **세목 불일치**(❤️-10), **유형 불일치**(❤️-5).\n**4.✨ 보너스**: 혐의 유형(`고의`, `오류`, `자본`) 맞는 카드 사용 시 추가 피해!""")
 
 def show_setup_draft_screen():
     st.title("👨‍💼 조사팀 구성"); st.markdown("팀 **리더**와 시작 **조사도구** 선택:")
@@ -731,3 +743,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
