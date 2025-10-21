@@ -59,7 +59,6 @@ class Artifact:
         self.name = name; self.description = description; self.effect = effect
 
 # --- 2. 게임 데이터베이스 (DB) ---
-# (이전 코드와 동일)
 TAX_MAN_DB = {
     "lim": TaxManCard(name="임향수", grade_num=5, description="국세청의 핵심 요직을 두루 거친 '조사통의 대부'. 굵직한 대기업 비자금, 불법 증여 조사를 지휘한 경험이 풍부하다.", cost=0, hp=120, focus=3, analysis=10, persuasion=10, evidence=10, data=10, ability_name="[기획 조사]", ability_desc="전설적인 통찰력. 매 턴 집중력 +1. 팀의 '분석', '데이터' 스탯에 비례해 '비용', '자본' 카드 피해량 증가."),
     "han": TaxManCard(name="한중히", grade_num=6, description="국제조세 분야에서 잔뼈가 굵은 전문가. OECD 파견 경험으로 국제 공조 및 BEPS 프로젝트에 대한 이해가 깊다.", cost=0, hp=80, focus=2, analysis=9, persuasion=6, evidence=8, data=9, ability_name="[역외탈세 추적]", ability_desc="'외국계' 기업 또는 '자본 거래' 혐의 공격 시, 최종 피해량 +30%."),
@@ -265,7 +264,7 @@ def log_message(message, level="normal"):
 # ... (show_reward_screen, show_reward_remove_screen, show_game_over_screen UI 함수 정의) ...
 # ... (show_player_status_sidebar UI 함수 정의) ...
 
-# --- 6. 메인 실행 로직 ---
+# --- [수정됨] 모든 함수 정의 완료 후 main 함수 정의 ---
 def main():
     st.set_page_config(page_title="세무조사 덱빌딩", layout="wide", initial_sidebar_state="expanded")
 
@@ -307,6 +306,6 @@ def main():
         if current_game_state == "BATTLE" and ('player_focus_current' not in st.session_state or 'player_focus_max' not in st.session_state or 'team_shield' not in st.session_state): pass
         else: show_player_status_sidebar()
 
-# --- [수정됨] 스크립트 실행 지점 (모든 정의 이후, 맨 마지막) ---
+# --- 스크립트 실행 지점 (모든 정의 이후, 맨 마지막) ---
 if __name__ == "__main__":
     main()
