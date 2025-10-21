@@ -65,7 +65,6 @@ class Artifact:
     def __init__(self, name, description, effect): self.name=name; self.description=description; self.effect=effect;
 
 # --- 2. 게임 데이터베이스 (DB) ---
-# [수정] 모든 TaxManCard의 hp는 생성자에서 20% 감소됨
 TAX_MAN_DB = {
     "lim": TaxManCard(name="임향수", description="조사통의 대부. 대기업 비자금, 불법 증여 조사 지휘 경험 풍부.", cost=0, hp=120, focus=3, analysis=10, persuasion=10, evidence=10, data=10, ability_name="[기획 조사]", ability_desc="매 턴 집중력+1. 분석/데이터 스탯 비례 비용/자본 카드 피해량 증가."),
     "han": TaxManCard(name="한중후", description="국제조세 전문가. OECD 파견 경험으로 국제 공조 및 BEPS 이해 깊음.", cost=0, hp=80, focus=2, analysis=9, persuasion=6, evidence=8, data=9, ability_name="[역외탈세 추적]", ability_desc="'외국계' 기업 또는 '자본 거래' 혐의 공격 시 최종 피해량 +30%."),
@@ -84,7 +83,6 @@ TAX_MAN_DB = {
     "jeon_j": TaxManCard(name="전준", description="실무 과장. 중부청 조사0국. 조사 현장 지휘 경험 풍부, 팀원 능력 활용 능숙.", cost=0, hp=85, focus=3, analysis=7, persuasion=6, evidence=6, data=6, ability_name="[실무 지휘]", ability_desc="턴 시작 시, **팀**의 다음 카드 사용 비용 -1.")
 }
 
-# [수정] 모든 LogicCard의 cost는 생성자에서 +1 증가됨
 LOGIC_CARD_DB = {
     "c_tier_01": LogicCard(name="단순 자료 대사", cost=0, base_damage=4, tax_type=[TaxType.COMMON], attack_category=[AttackCategory.COMMON], description="매입/매출 자료 단순 비교.", text="자료 대사 기본 습득."),
     "c_tier_02": LogicCard(name="법령 재검토", cost=0, base_damage=0, tax_type=[TaxType.COMMON], attack_category=[AttackCategory.COMMON], description="카드 1장 뽑기.", text="관련 법령 재검토.", special_effect={"type": "draw", "value": 1}),
@@ -110,89 +108,29 @@ LOGIC_CARD_DB = {
     "err_01": LogicCard(name="세무조정 오류 시정", cost=2, base_damage=25, tax_type=[TaxType.COMMON], attack_category=[AttackCategory.COMMON], description="기업의 세무조정계산서를 검토하여, 감가상각, 충당금 설정 등에서 발생한 명백한 회계/세법 적용 오류를 지적합니다.", text="조정계산서 검토.", special_bonus={'target_method': MethodType.ERROR, 'multiplier': 2.0, 'bonus_desc': '단순 오류에 2배 피해'}),
     "vat_02": LogicCard(name="매입세액 부당공제", cost=2, base_damage=28, tax_type=[TaxType.VAT], attack_category=[AttackCategory.COST, AttackCategory.COMMON], description="사업과 관련 없는 매입(예: 대표 개인 골프장 비용)에 대한 세금계산서를 받아 매입세액을 부당하게 공제/환급받은 것을 적발합니다.", text="사적 경비 부인.", special_bonus={'target_method': MethodType.INTENTIONAL, 'multiplier': 1.5, 'bonus_desc': '고의적 누락에 1.5배 피해'}),
 }
-# --- [신규] 2개의 조사 도구 추가 ---
 ARTIFACT_DB = {
     "coffee": Artifact(name="☕ 믹스 커피", description="턴 시작 시 집중력 +1.", effect={"type": "on_turn_start", "value": 1, "subtype": "focus"}),
     "forensic": Artifact(name="💻 포렌식 장비", description="팀 '증거(Evidence)' 스탯 +5.", effect={"type": "on_battle_start", "value": 5, "subtype": "stat_evidence"}),
     "plan": Artifact(name="📜 조사계획서", description="첫 턴 카드 +1장.", effect={"type": "on_battle_start", "value": 1, "subtype": "draw"}),
     "recorder": Artifact(name="🎤 녹음기", description="팀 '설득(Persuasion)' 스탯 +5.", effect={"type": "on_battle_start", "value": 5, "subtype": "stat_persuasion"}),
     "book": Artifact(name="📖 오래된 법전", description="'판례 제시', '법령 재검토' 비용 -1.", effect={"type": "on_cost_calculate", "value": -1, "target_cards": ["판례 제시", "법령 재검토"]}),
-    # --- 신규 도구 2개 ---
     "report": Artifact(name="📊 분기 보고서", description="팀 '분석(Analysis)' 스탯 +5.", effect={"type": "on_battle_start", "value": 5, "subtype": "stat_analysis"}),
     "badge": Artifact(name="🎖️ 우수 조사관 배지", description="첫 턴 카드 +1장. (조사계획서와 중첩 가능)", effect={"type": "on_battle_start", "value": 1, "subtype": "draw"}),
 }
-# --- [수정] 기업 이름 변경 및 team_hp_damage는 생성자에서 20% 증가됨 ---
+
 COMPANY_DB = [
-    # --- C Group (Easy, 9-11th) ---
-    Company(
-        name="(주)가나푸드", size="소규모", revenue=8000, operating_income=800, tax_target=10, team_hp_damage=(5, 12),
-        description="인기 **SNS 인플루언서**가 운영하는 **온라인 쇼핑몰**(식품 유통). 대표는 **고가 외제차**, **명품** 과시.",
-        real_case_desc="...", tactics=[...], defense_actions=["..."]
-    ),
-    Company(
-        # [수정] 이름 변경: 쿠팡 -> 코팡
-        name="㈜코팡 (Kopang)", size="중견기업", revenue=300000, operating_income=10000, tax_target=50, team_hp_damage=(10, 20),
-        description="빠른 배송으로 유명한 **E-커머스 플랫폼**. **쿠폰 발행**, **포인트 적립** 등 프로모션 비용이 막대함.",
-        real_case_desc="...", tactics=[...], defense_actions=["..."]
-    ),
-    Company(
-        # [수정] 이름 변경: 넥산 -> 넥선
-        name="㈜넥선 (Nexun)", size="중견기업", revenue=200000, operating_income=15000, tax_target=100, team_hp_damage=(15, 30),
-        description="최근 급성장한 **게임/IT 기업**. **R&D 투자**가 많고 임직원 **스톡옵션** 부여가 잦습니다.",
-        real_case_desc="...", tactics=[...], defense_actions=["..."]
-    ),
-
-    # --- B Group (Medium, 6-8th) ---
-    Company(
-        name="(주)한늠석유 (자료상)", size="중견기업", revenue=70000, operating_income=-800, tax_target=150, team_hp_damage=(20, 35),
-        description="전형적인 '**자료상**' 의심 업체. **유가보조금 부정수급** 및 **허위 세금계산서** 발행 전력.",
-        real_case_desc="...", tactics=[...], defense_actions=["..."]
-    ),
-    Company(
-        name="(주)대롬건설 (Daelom E&C)", size="중견기업", revenue=500000, operating_income=25000, tax_target=200, team_hp_damage=(20, 30),
-        description="다수의 **관급 공사** 수주 이력이 있는 **중견 건설사**. **하도급** 거래가 복잡함.",
-        real_case_desc="...", tactics=[...], defense_actions=["..."]
-    ),
-    Company(
-        name="(주)한모약품 (Hanmo Pharm)", size="중견기업", revenue=400000, operating_income=30000, tax_target=300, team_hp_damage=(20, 35),
-        description="**신약 개발**에 막대한 자금을 투자하는 **제약/바이오** 기업. **기술 수출** 실적 보유.",
-        real_case_desc="...", tactics=[...], defense_actions=["..."]
-    ),
-
-    # --- A Group (Hard, 3-5th) ---
-    Company(
-        # [수정] 이름 변경: 로때 -> 로떼
-        name="(주)로떼 (Lottee)", size="대기업", revenue=30_000_000, operating_income=1_000_000, tax_target=800, team_hp_damage=(18, 30),
-        description="**유통, 화학, 건설** 등 다수 계열사 보유 **대기업 그룹**. **순환출자** 구조 및 **경영권 분쟁** 이력.",
-        real_case_desc="...", tactics=[...], defense_actions=["..."]
-    ),
-    Company(
-        # [수정] 이름 변경: 삼송 -> 삼숭
-        name="㈜삼숭물산 (Samsyoong)", size="대기업", revenue=60_000_000, operating_income=2_500_000, tax_target=1200, team_hp_damage=(20, 40),
-        description="국내 굴지 **대기업 그룹**의 핵심 계열사. **경영권 승계**, **신사업 투자**, **해외 M&A** 활발.",
-        real_case_desc="...", tactics=[...], defense_actions=["..."]
-    ),
-    Company(
-        name="(주)씨엔해운 (C&N)", size="대기업", revenue=12_000_000, operating_income=600_000, tax_target=1600, team_hp_damage=(25, 45),
-        description="'**해운 재벌**'로 불리는 오너 운영. **조세피난처 SPC** 활용 및 **선박금융** 관련 복잡한 거래 구조.",
-        real_case_desc="...", tactics=[...], defense_actions=["..."]
-    ),
-
-    # --- S Group (Global, 1-2nd) ---
-    Company(
-        # [수정] 이름 변경: 구골 -> 구굴
-        name="구굴 코리아(유) (Googul)", size="글로벌 기업", revenue=3_000_000, operating_income=400_000, tax_target=1000, team_hp_damage=(18, 35),
-        description="글로벌 **IT 공룡**의 한국 지사. **디지털 광고**, **클라우드** 사업 영위.",
-        real_case_desc="...", tactics=[...], defense_actions=["..."]
-    ),
-    Company(
-        # [수정] 이름 변경: 아마존 -> 아메존
-        name="아메존 코리아 (Amejon)", size="글로벌 기업", revenue=20_000_000, operating_income=500_000, tax_target=1800, team_hp_damage=(30, 50),
-        description="세계 최대 **E-커머스** 및 **클라우드 서비스** 기업. 국내 **물류센터** 운영 및 **AWS** 사업 활발.",
-        real_case_desc="...", tactics=[...], defense_actions=["..."]
-    ),
+    Company(name="(주)가나푸드", size="소규모", revenue=8000, operating_income=800, tax_target=10, team_hp_damage=(5, 12), description="인기 **SNS 인플루언서**가 운영하는 **온라인 쇼핑몰**(식품 유통). 대표는 **고가 외제차**, **명품** 과시.", real_case_desc="[교육] 최근 **온라인 플랫폼 기반 사업자**들의 탈세가 증가하고 있습니다...\n* **개인 계좌** 사용...\n* **업무 무관 경비**...\n* **증빙 미비**...", tactics=[EvasionTactic("사주 개인 유용 및 경비", "대표 개인 **명품 구매**(5천만원), **해외여행 경비**(3천만원), **자녀 학원비**(2천만원) 등 총 **1억원**을 법인 비용 처리.", 7, TaxType.CORP, MethodType.INTENTIONAL, AttackCategory.COST), EvasionTactic("매출 누락 (개인 계좌)", "고객으로부터 받은 **현금 매출** 및 **계좌 이체** 대금 중 **3억원**을 대표 개인 계좌로 받아 **매출 신고 누락**.", 3, [TaxType.CORP, TaxType.VAT], MethodType.INTENTIONAL, AttackCategory.REVENUE)], defense_actions=["담당 세무사가 '실수' 주장.", "대표가 '개인 돈 썼다'고 항변.", "경리 직원이 '몰랐다' 시전."]),
+    Company(name="㈜코팡 (Kopang)", size="중견기업", revenue=300000, operating_income=10000, tax_target=50, team_hp_damage=(10, 20), description="빠른 배송으로 유명한 **E-커머스 플랫폼**. **쿠폰 발행**, **포인트 적립** 등 프로모션 비용이 막대함.", real_case_desc="[교육] **E-커머스 플랫폼**은 **고객 유치 비용**(쿠폰, 적립금)의 회계 처리가 쟁점입니다...\n* **할인 vs 비용**...\n* **시점**...\n* **부가세**...", tactics=[EvasionTactic("포인트 비용 인식 오류", "고객에게 **적립**해준 **포인트/마일리지** 전액(50억원)을 **발생 시점**에 **비용** 처리. 실제 **사용 시점** 기준으로 재계산 필요.", 20, TaxType.CORP, MethodType.ERROR, AttackCategory.COST), EvasionTactic("쿠폰 부가세 과표 오류", "제휴사 부담 **할인 쿠폰** 금액(30억원)을 **부가세 과세표준**에서 임의로 제외하여 **부가세** 신고 누락.", 30, TaxType.VAT, MethodType.ERROR, AttackCategory.REVENUE)], defense_actions=["'일관된 회계 기준' 적용했다고 주장.", "업계 관행이라며 소극적 대응.", "방대한 거래 데이터 제출, 검토 지연 유도."]),
+    Company(name="㈜넥선 (Nexun)", size="중견기업", revenue=200000, operating_income=15000, tax_target=100, team_hp_damage=(15, 30), description="최근 급성장한 **게임/IT 기업**. **R&D 투자**가 많고 임직원 **스톡옵션** 부여가 잦습니다.", real_case_desc="[교육] IT 기업은 **연구개발(R&D) 세액공제** 적용 요건이 까다롭고 변경이 잦아 오류가 발생하기 쉽습니다...", tactics=[EvasionTactic("R&D 비용 부당 공제", "**연구개발 활동**과 직접 관련 없는 **인건비** 및 **일반 관리비** 50억원을 **R&D 세액공제** 대상 비용으로 허위 계상.", 60, TaxType.CORP, MethodType.INTENTIONAL, AttackCategory.COST), EvasionTactic("스톡옵션 시가 저가 평가", "임원에게 부여한 **스톡옵션** 행사 시 **비상장주식 가치**를 의도적으로 낮게 평가하여 **소득세(근로소득)** 40억원 탈루.", 40, TaxType.CORP, MethodType.CAPITAL_TX, AttackCategory.CAPITAL)], defense_actions=["회계법인이 '적격 R&D' 의견 제시.", "연구 노트 등 서류 미비.", "스톡옵션 평가는 '정관 규정' 따랐다고 주장."]),
+    Company(name="(주)한늠석유 (자료상)", size="중견기업", revenue=70000, operating_income=-800, tax_target=150, team_hp_damage=(20, 35), description="전형적인 '**자료상**' 의심 업체. **유가보조금 부정수급** 및 **허위 세금계산서** 발행 전력.", real_case_desc="[교육] **자료상**은 실제 거래 없이 세금계산서만 사고파는 행위를 통해 국가 재정을 축내는 대표적인 **조세 범죄**입니다...", tactics=[EvasionTactic("유가보조금 부정수급 공모", "**화물차주**들과 짜고 **허위 세금계산서**(월 10억원) 발행, 실제 주유 없이 **유가보조금** 총 100억원 편취.", 100, [TaxType.VAT, TaxType.COMMON], MethodType.INTENTIONAL, AttackCategory.REVENUE), EvasionTactic("자료상 행위 (중개)", "실물 거래 없이 **폭탄업체**로부터 **가짜 세금계산서**(50억원)를 매입하여 다른 법인에 수수료 받고 판매.", 50, TaxType.VAT, MethodType.INTENTIONAL, AttackCategory.COST)], defense_actions=["대표 해외 도피 시도.", "사무실 잠적 (페이퍼컴퍼니).", "관련 장부 소각 및 증거 인멸 시도."]),
+    Company(name="(주)대롬건설 (Daelom E&C)", size="중견기업", revenue=500000, operating_income=25000, tax_target=200, team_hp_damage=(20, 30), description="다수의 **관급 공사** 수주 이력이 있는 **중견 건설사**. **하도급** 거래가 복잡함.", real_case_desc="[교육] 건설업은 **불투명한 자금 흐름**으로 인해 세무조사 단골 업종 중 하나입니다...\n* **원가 허위 계상**...\n* **무자료 거래 및 허위 세금계산서**...\n* **수입금액 누락**...\n* **진행률 조작**...", tactics=[EvasionTactic("가공 인건비 계상", "**일용직 근로자** 인건비 150억원을 **허위 계상**하여 비용 처리하고 **비자금** 조성.", 120, TaxType.CORP, MethodType.INTENTIONAL, AttackCategory.COST), EvasionTactic("하도급 리베이트", "**하도급 업체** 10여곳에 공사비를 부풀려 지급(80억원)한 뒤, 차액을 **현금 리베이트**로 수수.", 80, [TaxType.CORP, TaxType.VAT], MethodType.INTENTIONAL, AttackCategory.CAPITAL)], defense_actions=["현장 소장에게 책임 전가.", "하도급 업체가 영세하여 추적 어려움.", "관련 장부 '화재로 소실' 주장."]),
+    Company(name="(주)한모약품 (Hanmo Pharm)", size="중견기업", revenue=400000, operating_income=30000, tax_target=300, team_hp_damage=(20, 35), description="**신약 개발**에 막대한 자금을 투자하는 **제약/바이오** 기업. **기술 수출** 실적 보유.", real_case_desc="[교육] **제약/바이오** 산업은 **R&D 비용** 및 **무형자산(IP)** 가치 평가가 핵심 쟁점입니다...", tactics=[EvasionTactic("개발비 과다 자산화", "임상 **실패 가능성**이 높은 **신약 파이프라인** 관련 지출 200억원을 **비용**이 아닌 **무형자산(개발비)**으로 처리하여 **법인세** 이연/탈루.", 180, TaxType.CORP, MethodType.ERROR, AttackCategory.COST), EvasionTactic("IP 저가 양도", "핵심 **신약 특허권**을 **조세피난처** 소재 **페이퍼컴퍼니** 자회사에 **정상 가격**(150억원)보다 현저히 낮은 30억원에 양도.", 120, TaxType.CORP, MethodType.CAPITAL_TX, AttackCategory.CAPITAL)], defense_actions=["'회계 기준'에 따른 정상적 처리 주장.", "신약 가치 평가는 '미래 불확실성' 반영 필요.", "글로벌 스탠다드라며 자료 제출 비협조."]),
+    Company(name="(주)로떼 (Lottee)", size="대기업", revenue=30_000_000, operating_income=1_000_000, tax_target=800, team_hp_damage=(18, 30), description="**유통, 화학, 건설** 등 다수 계열사 보유 **대기업 그룹**. **순환출자** 구조 및 **경영권 분쟁** 이력.", real_case_desc="[교육] 복잡한 **순환출자** 구조를 가진 대기업은 **그룹사 간 부당 지원** 및 **자본 거래**를 통한 이익 분여가 잦습니다...\n* **계열사 간 자금 대여**...\n* **자산 양수도**...\n* **경영권 분쟁**...", tactics=[EvasionTactic("계열사 부당 자금 대여", "**총수 일가** 지분이 높은 **(주)로떼정보**에 **업무 무관** 가지급금 500억원을 **무상**으로 대여.", 500, TaxType.CORP, MethodType.CAPITAL_TX, AttackCategory.CAPITAL), EvasionTactic("부동산 고가 매입", "경영 악화된 **계열사**의 **토지**를 **정상가**(300억)보다 높은 **500억원**에 매입하여 부당 지원.", 300, TaxType.CORP, MethodType.CAPITAL_TX, AttackCategory.CAPITAL)], defense_actions=["'경영 정상화'를 위한 불가피한 지원 주장.", "자산 평가는 '외부 회계법인' 용역 결과.", "경영권 분쟁 관련 자료 제출 거부."]),
+    Company(name="㈜삼숭물산 (Samsyoong)", size="대기업", revenue=60_000_000, operating_income=2_500_000, tax_target=1200, team_hp_damage=(20, 40), description="국내 굴지 **대기업 그룹**의 핵심 계열사. **경영권 승계**, **신사업 투자**, **해외 M&A** 활발.", real_case_desc="[교육] 대기업 조사는 **그룹 전체**의 지배구조와 자금 흐름을 파악하는 것이 중요합니다...", tactics=[EvasionTactic("일감 몰아주기 (통행세)", "**총수 자녀 회사**를 거래 중간에 끼워넣어 **통행세** 명목으로 연 500억원 부당 지원.", 500, TaxType.CORP, MethodType.CAPITAL_TX, AttackCategory.CAPITAL), EvasionTactic("불공정 합병", "**총수 일가**에 유리하게 **계열사 합병 비율**을 산정하여 **이익** 200억원 증여.", 300, TaxType.CORP, MethodType.CAPITAL_TX, AttackCategory.CAPITAL), EvasionTactic("해외 현지법인 부당 지원", "**싱가포르 자회사**에 **업무 관련성** 없는 **컨설팅 수수료** 명목으로 400억원 부당 지급.", 400, TaxType.CORP, MethodType.INTENTIONAL, AttackCategory.REVENUE)], defense_actions=["대형 로펌 '**태평양**' 자문, '경영상 판단' 주장.", "공정위 등 타 부처 심의 결과 제시하며 반박.", "언론 통해 '**반기업 정서**' 프레임 활용.", "국회 통한 입법 로비 시도."]),
+    Company(name="(주)씨엔해운 (C&N)", size="대기업", revenue=12_000_000, operating_income=600_000, tax_target=1600, team_hp_damage=(25, 45), description="'**해운 재벌**'로 불리는 오너 운영. **조세피난처 SPC** 활용 및 **선박금융** 관련 복잡한 거래 구조.", real_case_desc="[교육] 해운업과 같이 **자본 집약적**이고 **국제적** 성격 강한 산업은 **조세피난처**를 이용한 탈세 유인이 큽니다...", tactics=[EvasionTactic("역외탈세 (SPC 소득 은닉)", "**라이베리아** 등 **SPC** 명의 선박 **운항 소득** 1조 2천억원을 국내 미신고 및 해외 은닉.", 1000, TaxType.CORP, MethodType.CAPITAL_TX, AttackCategory.REVENUE), EvasionTactic("선박 매각 차익 은닉", "**노후 선박**을 해외 SPC에 **저가** 양도 후, SPC가 제3자에 **고가** 매각하는 방식 **양도 차익** 600억원 해외 은닉.", 600, TaxType.CORP, MethodType.INTENTIONAL, AttackCategory.CAPITAL)], defense_actions=["해외 SPC는 '독립된 법인격' 주장.", "국제 해운 관행 및 현지 법률 준수 항변.", "**조세정보교환협정** 미체결국 이용, 자료 확보 방해.", "해운 불황으로 인한 '경영상 어려움' 호소."]),
+    Company(name="구굴 코리아(유) (Googul)", size="글로벌 기업", revenue=3_000_000, operating_income=400_000, tax_target=1000, team_hp_damage=(18, 35), description="글로벌 **IT 공룡**의 한국 지사. **디지털 광고**, **클라우드** 사업 영위.", real_case_desc="[교육] **디지털세** 논의를 촉발한 글로벌 IT 기업들은 **고정사업장** 개념 회피, **이전가격 조작** 등 지능적 조세회피 전략을 사용합니다...\n* **고정사업장 회피**...\n* **이전가격(TP) 조작**...\n* **디지털 서비스 소득**...", tactics=[EvasionTactic("이전가격(TP) 조작 - 경영지원료", "**싱가포르 지역본부**에 **실제 역할** 대비 과도한 **경영지원 수수료** 600억원 지급, 국내 이익 축소.", 600, TaxType.CORP, MethodType.CAPITAL_TX, AttackCategory.CAPITAL), EvasionTactic("고정사업장 회피", "국내 **클라우드 서버** 운영 및 **기술 지원** 인력이 **핵심적 역할** 수행함에도 **고정사업장** 미신고, 관련 소득 400억원 과세 회피.", 400, TaxType.CORP, MethodType.INTENTIONAL, AttackCategory.REVENUE)], defense_actions=["미국 본사 '**기술 이전 계약**' 근거 정상 거래 주장.", "**조세 조약** 및 **OECD 가이드라인** 해석 다툼 예고.", "**상호합의절차(MAP)** 신청 통한 시간 끌기 전략.", "각국 과세 당국 간 **정보 부족** 악용."]),
+    Company(name="아메존 코리아 (Amejon)", size="글로벌 기업", revenue=20_000_000, operating_income=500_000, tax_target=1800, team_hp_damage=(30, 50), description="세계 최대 **E-커머스** 및 **클라우드 서비스** 기업. 국내 **물류센터** 운영 및 **AWS** 사업 활발.", real_case_desc="[교육] **클라우드 컴퓨팅** 및 **E-커머스** 기업은 **서버**와 **물류센터**의 법적 성격이 핵심 쟁점입니다...\n* **고정사업장(PE) 쟁점**...\n* **이전가격(TP) 조작**...\n* **부가세**...", tactics=[EvasionTactic("고정사업장(PE) 회피", "국내 **대규모 데이터센터(IDC)**가 **클라우드 서비스**의 **핵심 사업** 수행함에도 **'예비적/보조적' 활동**이라 주장하며 관련 **법인세** 1조원 신고 누락.", 1000, TaxType.CORP, MethodType.INTENTIONAL, AttackCategory.REVENUE), EvasionTactic("이전가격 조작 - 로열티", "국내 **E-커머스** 사업 수익 대부분을 **'브랜드 사용료'** 및 **'플랫폼 로열티'** 명목으로 **룩셈부르크** 본사에 과다 지급.", 800, TaxType.CORP, MethodType.CAPITAL_TX, AttackCategory.CAPITAL)], defense_actions=["**조세 조약** 상 고정사업장 정의에 미부합 주장.", "클라우드 서버는 '단순 저장 장치'라고 항변.", "미국 **IRS**와의 **이중과세** 문제 제기 (MAP).", "한국 정부 '디지털세' 도입 반대 로비."]),
 ]
-
 
 # --- 3. 게임 상태 초기화 및 관리 ---
 def initialize_game(chosen_lead: TaxManCard, chosen_artifact: Artifact):
@@ -209,12 +147,11 @@ def initialize_game(chosen_lead: TaxManCard, chosen_artifact: Artifact):
         LOGIC_CARD_DB["c_tier_02"], LOGIC_CARD_DB["c_tier_02"],
         LOGIC_CARD_DB["c_tier_01"], LOGIC_CARD_DB["c_tier_01"], LOGIC_CARD_DB["c_tier_01"],
         LOGIC_CARD_DB["c_tier_01"], LOGIC_CARD_DB["c_tier_01"]
-    ] # 총 11장
+    ]
 
     st.session_state.player_deck = random.sample(start_deck, len(start_deck)); st.session_state.player_hand=[]; st.session_state.player_discard=[]
     st.session_state.player_artifacts=[chosen_artifact]
 
-    # [수정] 팀 스탯 계산 로직 함수화 (팀원 추가 시 재사용 위함)
     recalculate_team_stats()
 
     all_companies = sorted(COMPANY_DB, key=lambda x: x.tax_target)
@@ -233,18 +170,15 @@ def initialize_game(chosen_lead: TaxManCard, chosen_artifact: Artifact):
     st.session_state.current_battle_company=None; st.session_state.battle_log=[]; st.session_state.selected_card_index=None; st.session_state.bonus_draw=0;
     st.session_state.game_state="MAP"; st.session_state.current_stage_level=0; st.session_state.total_collected_tax=0
 
-# --- [신규] 팀 스탯 재계산 함수 ---
 def recalculate_team_stats():
     team_members = st.session_state.player_team
     st.session_state.team_max_hp = sum(m.hp for m in team_members)
-    # 현재 체력도 최대 체력을 넘지 않도록 조정
     if 'team_hp' in st.session_state:
         st.session_state.team_hp = min(st.session_state.team_hp, st.session_state.team_max_hp)
     else:
         st.session_state.team_hp = st.session_state.team_max_hp
 
     st.session_state.player_focus_max = sum(m.focus for m in team_members)
-    # 현재 집중력도 최대 집중력을 넘지 않도록 조정
     if 'player_focus_current' in st.session_state:
         st.session_state.player_focus_current = min(st.session_state.player_focus_current, st.session_state.player_focus_max)
     else:
@@ -256,12 +190,11 @@ def recalculate_team_stats():
         "evidence": sum(m.evidence for m in team_members),
         "data": sum(m.data for m in team_members)
     }
-    # 유물에 의한 스탯 보너스 재적용
     for art in st.session_state.player_artifacts:
         if art.effect["type"] == "on_battle_start":
             if art.effect["subtype"] == "stat_evidence": st.session_state.team_stats["evidence"] += art.effect["value"]
             elif art.effect["subtype"] == "stat_persuasion": st.session_state.team_stats["persuasion"] += art.effect["value"]
-            elif art.effect["subtype"] == "stat_analysis": st.session_state.team_stats["analysis"] += art.effect["value"] # 분기 보고서
+            elif art.effect["subtype"] == "stat_analysis": st.session_state.team_stats["analysis"] += art.effect["value"]
 
 
 # --- 4. 게임 로직 함수 ---
@@ -269,9 +202,8 @@ def recalculate_team_stats():
 def start_player_turn():
     st.session_state.hit_effect_player = False
 
-    # [수정] 최대 집중력은 매 턴 시작 시 팀원 기준으로 재계산
     st.session_state.player_focus_max = sum(m.focus for m in st.session_state.player_team)
-    st.session_state.player_focus_current = st.session_state.player_focus_max # 현재 집중력은 최대로 회복
+    st.session_state.player_focus_current = st.session_state.player_focus_max
 
     if "임향수" in [m.name for m in st.session_state.player_team]:
         st.session_state.player_focus_current+=1
@@ -280,8 +212,7 @@ def start_player_turn():
         if art.effect["type"]=="on_turn_start" and art.effect["subtype"]=="focus":
             st.session_state.player_focus_current+=art.effect["value"]
             log_message(f"✨ {art.name} 집중력 +{art.effect['value']}!", "info")
-    # 최대치 초과 방지
-    st.session_state.player_focus_current = min(st.session_state.player_focus_current, st.session_state.player_focus_max + 10) # 임시 최대치 +10 버퍼
+    st.session_state.player_focus_current = min(st.session_state.player_focus_current, st.session_state.player_focus_max + 10)
 
     if "김대조" in [m.name for m in st.session_state.player_team] and st.session_state.team_stats["data"]>=50 and not st.session_state.get('kim_dj_effect_used', False):
         new=copy.deepcopy(LOGIC_CARD_DB["b_tier_01"]); new.just_created=True; st.session_state.player_hand.append(new);
@@ -290,16 +221,14 @@ def start_player_turn():
     if st.session_state.cost_reduction_active:
         log_message("✨ [실무 지휘] 다음 카드 비용 -1!", "info")
 
-    # 첫 턴 드로우 보너스 계산 (중첩 가능)
     st.session_state.bonus_draw = 0
     for art in st.session_state.player_artifacts:
         if art.effect["type"] == "on_battle_start" and art.effect["subtype"] == "draw":
             st.session_state.bonus_draw += art.effect["value"]
 
     draw_n = 4 + st.session_state.get('bonus_draw', 0)
-    if st.session_state.get('bonus_draw', 0)>0:
+    if st.session_state.get('bonus_draw', 0)>0 and st.session_state.current_battle_company and not st.session_state.battle_log: # 첫 턴인지 확인 (로그 비어있는지)
         log_message(f"✨ 시작 보너스로 카드 {st.session_state.bonus_draw}장 추가 드로우!", "info")
-        # bonus_draw는 첫 턴에만 적용되므로 여기서 초기화하지 않음 (start_battle에서 초기화)
 
     draw_cards(draw_n); check_draw_cards_in_hand(); log_message("--- 플레이어 턴 시작 ---"); st.session_state.turn_first_card_played=True; st.session_state.selected_card_index=None
 
@@ -333,6 +262,12 @@ def execute_utility_card(card_index):
     if card_index is None or card_index >= len(st.session_state.player_hand): return
     card = st.session_state.player_hand[card_index]; cost = calculate_card_cost(card)
     if st.session_state.player_focus_current < cost: st.toast(f"집중력 부족! ({cost})", icon="🧠"); return
+
+    # 전준 효과 사용 여부 확인 및 로그 처리 플래그 설정
+    if st.session_state.get('cost_reduction_active', False) and cost < card.cost:
+        st.session_state.cost_reduction_active = False # 효과 소모
+        st.session_state.cost_reduction_active_just_used = True # 로그 출력용 플래그
+
     st.session_state.player_focus_current -= cost
     if st.session_state.get('turn_first_card_played', True): st.session_state.turn_first_card_played = False
     effect = card.special_effect.get("type")
@@ -351,6 +286,12 @@ def execute_utility_card(card_index):
             else: log_message("ℹ️ [빅데이터 분석] 관련 카드 없음...", "info")
     elif effect == "draw":
         val = card.special_effect.get("value", 0); log_message(f"✨ [{card.name}] 효과! 카드 {val}장 드로우!", "info"); draw_cards(val)
+
+    # 전준 효과 로그 출력
+    if st.session_state.get('cost_reduction_active_just_used', False):
+        log_message(f"✨ [실무 지휘] 카드 비용 -1 적용!", "info")
+        st.session_state.cost_reduction_active_just_used = False # 로그 플래그 리셋
+
     st.session_state.player_discard.append(st.session_state.player_hand.pop(card_index)); st.session_state.selected_card_index = None
     check_draw_cards_in_hand(); st.rerun()
 
@@ -363,9 +304,9 @@ def select_card_to_play(card_index):
 
 def cancel_card_selection(): st.session_state.selected_card_index = None; st.rerun()
 
-# [수정] 카드 비용 계산 시, 인물 능력(백용호, 박조연, 안원규, 전준)은 +1된 비용 이전에 적용되도록 순서 조정
 def calculate_card_cost(card):
-    original_cost = card.cost - 1 # 생성자에서 +1 되었으므로 원래 비용으로 복원
+    # 생성자에서 +1된 비용이 card.cost에 저장되어 있음
+    original_cost = max(0, card.cost - 1) # 원래 비용 복원 (최소 0)
     cost = original_cost
 
     # 인물 능력에 의한 비용 감소 (원래 비용 기준)
@@ -377,12 +318,8 @@ def calculate_card_cost(card):
         cost = max(0, cost - 1)
     if "안원규" in [m.name for m in st.session_state.player_team] and card.name in ['현장 압수수색', '차명계좌 추적']:
         cost = max(0, cost - 1)
-    if st.session_state.get('cost_reduction_active', False):
-        temp_cost = cost # 전준 능력 적용 전 비용 저장
-        cost = max(0, cost - 1)
-        if cost < temp_cost: # 비용 감소가 실제로 일어났다면
-            st.session_state.cost_reduction_active = False # 효과 1회용으로 소모
-            # 로그는 execute_attack 등 실제 사용 시점에 찍는 것이 더 자연스러움
+    if st.session_state.get('cost_reduction_active', False): # 전준 효과 적용 (아직 소모 전 상태)
+        cost = max(0, cost - 1) # 비용 계산 시 -1 선반영
 
     # 유물에 의한 비용 감소 (인물 능력 적용 후)
     for art in st.session_state.player_artifacts:
@@ -392,10 +329,10 @@ def calculate_card_cost(card):
     # 최종적으로 기본 비용 증가분(+1) 적용
     final_cost = max(0, cost + 1) # 모든 계산 후 최종 비용 +1
 
-    # 전준 효과 로그 추가 (실제 사용될 비용이 감소했는지 확인 후)
-    if st.session_state.get('cost_reduction_active_just_used', False) and card.cost > final_cost:
-        log_message(f"✨ [실무 지휘] 카드 비용 -1!", "info")
-        st.session_state.cost_reduction_active_just_used = False # 로그 출력 플래그 리셋
+    # 전준 효과 로그 추가 (실제 사용될 비용이 원래 비용+1보다 작으면)
+    if st.session_state.get('cost_reduction_active', False) and final_cost < (original_cost + 1):
+        # execute_attack 등에서 실제로 사용될 때 로그를 찍기 위해 플래그 설정
+        pass # 플래그 설정 로직은 execute_attack/execute_utility_card 로 이동됨
 
     return final_cost
 
@@ -410,7 +347,8 @@ def execute_attack(card_index, tactic_index, penalty_mult=1.0):
     if st.session_state.player_focus_current < cost: st.toast(f"집중력 부족! ({cost})", icon="🧠"); st.session_state.selected_card_index = None; st.rerun(); return
 
     # 전준 효과 사용 여부 확인 및 로그 처리 플래그 설정
-    if st.session_state.get('cost_reduction_active', False) and cost < card.cost:
+    original_cost_plus_one = max(0, card.cost - 1) + 1 # 생성자+1 복원 후 다시 +1
+    if st.session_state.get('cost_reduction_active', False) and cost < original_cost_plus_one:
         st.session_state.cost_reduction_active = False # 효과 소모
         st.session_state.cost_reduction_active_just_used = True # 로그 출력용 플래그
 
@@ -636,11 +574,10 @@ def end_player_turn():
 
 def enemy_turn():
     co = st.session_state.current_battle_company; act = random.choice(co.defense_actions);
-    # [수정] team_hp_damage는 생성자에서 이미 20% 증가됨
-    min_d, max_d = co.team_hp_damage;
+    min_d, max_d = co.team_hp_damage; # 생성자에서 이미 20% 증가됨
     dmg = random.randint(min_d, max_d); st.session_state.team_hp -= dmg
-    st.session_state.hit_effect_player = True # 피격 효과 플래그
-    st.toast(f"❤️ 팀 체력 -{dmg}!", icon="💔") # 피격 타격감
+    st.session_state.hit_effect_player = True
+    st.toast(f"❤️ 팀 체력 -{dmg}!", icon="💔")
     log_icon = "🏢"
     if "로펌" in act or "법무팀" in act or "법리" in act: log_icon = "⚖️"
     elif "자료" in act or "서버" in act or "장부" in act: log_icon = "📁"
@@ -711,15 +648,13 @@ def start_battle(co_template):
     if MethodType.ERROR in t_types and MethodType.INTENTIONAL not in t_types: guide += "단순 오류: 규정/판례 제시, 설득 효과적. "; has_g = True
     log_message(guide if has_g else "[조사 가이드] 기업 특성/혐의 고려, 전략적 접근.", "warning"); log_message("---", "info")
 
-    # 전투 시작 시 유물 효과 적용 (스탯 재계산에 포함됨)
-    recalculate_team_stats()
+    recalculate_team_stats() # 전투 시작 시 유물 효과 적용 포함
 
-    # 첫 턴 드로우 보너스 계산 (start_player_turn에서 사용)
-    st.session_state.bonus_draw = 0
+    st.session_state.bonus_draw = 0 # 첫 턴 드로우 보너스 초기화
     for art in st.session_state.player_artifacts:
         log_message(f"✨ [조사도구] '{art.name}' 효과 준비.", "info")
         if art.effect["type"] == "on_battle_start" and art.effect["subtype"] == "draw":
-            st.session_state.bonus_draw += art.effect["value"] # 첫 턴 드로우 카운트 누적
+            st.session_state.bonus_draw += art.effect["value"]
 
     st.session_state.player_deck.extend(st.session_state.player_discard); st.session_state.player_deck = random.sample(st.session_state.player_deck, len(st.session_state.player_deck)); st.session_state.player_discard = []; st.session_state.player_hand = [];
     start_player_turn()
@@ -768,18 +703,13 @@ def show_main_menu():
         **2. ⚔️ 전투**: ❤️ **팀 체력**(0 시 패배), 🧠 **집중력**(카드 사용 자원).
         **3. ✨ 보너스**: 혐의 유형(`고의`, `오류`, `자본`)에 맞는 카드 사용 시 추가 피해!
         **4. 📈 성장**: 스테이지가 오를수록 기본 카드가 강해집니다. 전투 승리 시 확률적으로 **팀원**이나 **조사 도구** 획득!
-        """) # 게임 방법 업데이트
+        """)
 
     st.markdown(
-        """
-        <style>
-        .watermark { ... } /* 스타일은 이전과 동일 */
-        </style>
-        <div class="watermark"> ... </div> /* 내용은 이전과 동일 */
-        """, unsafe_allow_html=True
+        """<style>...</style><div class="watermark">...</div>""", # 이전과 동일
+        unsafe_allow_html=True
     )
 
-# --- [수정] format_func에서 등급 표시 제거 (지난 요청에서 이미 반영됨) ---
 def show_setup_draft_screen():
     st.title("👨‍💼 조사팀 구성"); st.markdown("팀 **리더**와 시작 **조사도구** 선택:")
     if 'draft_team_choices' not in st.session_state or 'draft_artifact_choices' not in st.session_state:
@@ -787,7 +717,7 @@ def show_setup_draft_screen():
     teams = st.session_state.draft_team_choices; arts = st.session_state.draft_artifact_choices
     st.markdown("---"); st.subheader("1. 팀 리더 선택:");
     lead_idx = st.radio("리더", range(len(teams)),
-                        format_func=lambda i: f"**{teams[i].name}** | {teams[i].description}\n    └ **{teams[i].ability_name}**: {teams[i].ability_desc}", # 등급 제거됨
+                        format_func=lambda i: f"**{teams[i].name}** | {teams[i].description}\n    └ **{teams[i].ability_name}**: {teams[i].ability_desc}",
                         label_visibility="collapsed")
     st.markdown("---"); st.subheader("2. 시작 조사도구 선택:"); art_idx = st.radio("도구", range(len(arts)), format_func=lambda i: f"**{arts[i].name}** | {arts[i].description}", label_visibility="collapsed")
     st.markdown("---");
@@ -796,6 +726,7 @@ def show_setup_draft_screen():
         del st.session_state.draft_team_choices, st.session_state.draft_artifact_choices
         st.rerun()
 
+# --- [수정] AttributeError 방지 로직 포함 ---
 def show_map_screen():
     if 'current_stage_level' not in st.session_state:
         st.warning("게임 상태 초기화됨..."); st.session_state.game_state = "MAIN_MENU"; st.rerun(); return
@@ -811,11 +742,13 @@ def show_map_screen():
     companies = st.session_state.company_order
     if stage < len(companies):
         co = companies[stage]
-# show_map_screen 함수 내부 ...
-           with st.expander("🔍 혐의 및 실제 사례 정보 보기"):
+        with st.container(border=True):
+            st.subheader(f"🏢 {co.name} ({co.size})"); st.markdown(co.description)
+            c1, c2 = st.columns(2); c1.metric("매출액", format_krw(co.revenue)); c2.metric("영업이익", format_krw(co.operating_income))
+            st.warning(f"**예상 턴당 데미지:** {co.team_hp_damage[0]}~{co.team_hp_damage[1]} ❤️"); st.info(f"**목표 추징 세액:** {co.tax_target:,} 억원 💰")
+            with st.expander("🔍 혐의 및 실제 사례 정보 보기"):
                 st.markdown("---"); st.markdown("### 📚 실제 사례 기반 교육 정보")
-                # 교육 정보가 정상적으로 표시되는지 확인 (st.markdown 사용)
-                st.markdown(co.real_case_desc)
+                st.markdown(co.real_case_desc) # 교육 정보 정상 표시
                 st.markdown("---"); st.markdown("### 📝 주요 탈루 혐의 분석")
 
                 if not co.tactics:
@@ -823,27 +756,20 @@ def show_map_screen():
                 else:
                     for i, t in enumerate(co.tactics):
                         try:
-                            # --- [수정] AttributeError 방지 ---
+                            # --- AttributeError 방지 ---
                             if isinstance(t.tax_type, list):
-                                # 리스트 내 요소가 .value 속성을 가지는지 확인 후 값 추출
                                 t_types = [tx.value for tx in t.tax_type if hasattr(tx, 'value')]
                             elif hasattr(t.tax_type, 'value'):
-                                # 단일 객체가 .value 속성을 가지는지 확인 후 값 추출
                                 t_types = [t.tax_type.value]
                             else:
-                                t_types = ["타입 오류"] # 예외 처리
-
-                            # method_type과 tactic_category도 안전하게 .value 접근
+                                t_types = ["타입 오류"]
                             method_val = t.method_type.value if hasattr(t.method_type, 'value') else "메소드 오류"
                             category_val = t.tactic_category.value if hasattr(t.tactic_category, 'value') else "카테고리 오류"
                             # --- 수정 끝 ---
-
                             st.markdown(f"**📌 {t.name}** (`{'/'.join(t_types)}`, `{method_val}`, `{category_val}`)\n> _{t.description}_")
-
                         except Exception as e:
                             st.error(f"혐의 '{t.name}' 표시 중 오류 발생: {e}")
-                            # 오류 발생 시 해당 혐의 정보 대신 오류 메시지 출력
-# ... 이하 함수 코드 동일 ...
+
             if st.button(f"🚨 {co.name} 조사 시작", type="primary", use_container_width=True):
                 start_battle(co)
                 st.rerun()
@@ -931,7 +857,6 @@ def show_battle_screen():
             with act_cols[1]:
                 c1, c2 = st.columns(2)
                 with c1:
-                     # [수정] 자동 공격 도움말에 체력 소모량 5 반영
                     st.button("⚡ 자동", on_click=execute_auto_attack, use_container_width=True, type="secondary", help="[❤️-5, 💥-25% 페널티] 가장 강력한 카드로 자동 공격합니다.")
 
         with st.expander("💡 특별 지시 (고급 행동)"):
@@ -941,8 +866,7 @@ def show_battle_screen():
         st.subheader(f"🃏 손패 ({len(st.session_state.player_hand)})")
 
         # --- [수정] 손패 UI 대폭 축소 ---
-        # 고정 높이 컨테이너 사용 (스크롤 가능하게)
-        hand_container = st.container(height=650) # 필요에 따라 높이 조절
+        hand_container = st.container(height=650) # 높이 조절 가능
 
         with hand_container:
             if not st.session_state.player_hand: st.write("(손패 없음)")
@@ -952,15 +876,12 @@ def show_battle_screen():
                 cost = calculate_card_cost(card); afford = st.session_state.player_focus_current >= cost; color = "blue" if afford else "red"; selected = (st.session_state.get("selected_card_index") == i)
 
                 with st.container(border=True):
-                    # 제목 줄: 비용, 이름, 선택됨 여부
                     selected_str = ":blue[** (선택됨)**]" if selected else ""
                     title_line = f":{color}[**{cost}🧠**] **{card.name}**{selected_str}"
 
-                    # 정보 줄: 피해량, 특효 등 (간략하게)
                     info_parts = []
                     if card.base_damage > 0: info_parts.append(f"💥{card.base_damage}억")
                     if card.special_bonus: info_parts.append(f"🔥{card.special_bonus.get('bonus_desc')}")
-                    # 유틸리티 카드 정보
                     if not info_parts:
                         if card.special_effect and card.special_effect.get("type") == "draw":
                             info_parts.append(f"✨드로우 +{card.special_effect.get('value')}")
@@ -969,18 +890,15 @@ def show_battle_screen():
 
                     info_line = " | ".join(info_parts)
 
-                    # 한 줄에 제목과 정보 표시 (정보는 작게)
                     if info_line:
                         st.markdown(f"{title_line} <small>({info_line})</small>", unsafe_allow_html=True)
                     else:
-                        st.markdown(title_line) # 정보 없으면 제목만
+                        st.markdown(title_line)
 
-                    # 버튼 (툴팁으로 상세 정보 제공)
                     btn_label = "선택" if (card.base_damage > 0) else "사용"
                     if card.special_effect and card.special_effect.get("type") in ["search_draw", "draw"]: btn_label = "사용"
 
                     disabled = not afford
-                    # 툴팁: 카드 상세 설명 + 태그 정보
                     c_types=[t.value for t in card.tax_type]; c_cats=[c.value for c in card.attack_category]
                     tooltip = f"[{card.name}] {card.description}\n세목:{'`,`'.join(c_types)} | 유형:{'`,`'.join(c_cats)}"
                     if not afford: tooltip = f"집중력 부족! ({cost})"
@@ -1017,7 +935,6 @@ def show_reward_screen():
         with cols[i]:
             with st.container(border=True):
                 types=[t.value for t in card.tax_type]; cats=[c.value for c in card.attack_category];
-                # [수정] 카드 비용 표시는 실제 비용(calculate_card_cost) 대신 기본 비용(card.cost) 표시
                 st.markdown(f"**{card.name}**|비용:{card.cost}🧠");
                 st.caption(f"세목:`{'`,`'.join(types)}`|유형:`{'`,`'.join(cats)}`"); st.markdown(card.description);
                 if card.base_damage > 0: st.info(f"**기본 적출액:** {card.base_damage} 억원")
@@ -1055,11 +972,9 @@ def show_player_status_sidebar():
         with st.expander("📊 팀 스탯", expanded=False):
             stats = st.session_state.team_stats; st.markdown(f"- 분석력: {stats['analysis']}\n- 설득력: {stats['persuasion']}\n- 증거력: {stats['evidence']}\n- 데이터: {stats['data']}")
 
-        # [수정] 팀원 수 동적 표시
-        st.subheader(f"👥 팀원 ({len(st.session_state.player_team)}명)")
+        st.subheader(f"👥 팀원 ({len(st.session_state.player_team)}명)") # 팀원 수 동적 표시
         for m in st.session_state.player_team:
-             # 등급 제거됨
-             with st.expander(f"**{m.name}**"):
+             with st.expander(f"**{m.name}**"): # 등급 제거
                  st.markdown(f"HP:{m.hp}/{m.max_hp}, Focus:{m.focus}\n**{m.ability_name}**: {m.ability_desc}\n({m.description})")
 
         st.markdown("---")
@@ -1116,5 +1031,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
