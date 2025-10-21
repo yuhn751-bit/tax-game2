@@ -23,9 +23,12 @@ def format_krw(amount):
 # --- 1. 기본 데이터 구조 ---
 class Card:
     def __init__(self, name, description, cost): self.name = name; self.description = description; self.cost = cost;
+
+# --- [수정] TaxManCard에서 grade_num, grade 속성 제거 ---
 class TaxManCard(Card):
-    def __init__(self, name, grade_num, description, cost, hp, focus, analysis, persuasion, evidence, data, ability_name, ability_desc):
-        super().__init__(name, description, cost); self.grade_num=grade_num; self.hp=hp; self.max_hp=hp; self.focus=focus; self.analysis=analysis; self.persuasion=persuasion; self.evidence=evidence; self.data=data; self.ability_name=ability_name; self.ability_desc=ability_desc; grade_map={4:"S", 5:"S", 6:"A", 7:"B", 8:"C", 9:"C"}; self.grade=grade_map.get(self.grade_num, "C")
+    def __init__(self, name, description, cost, hp, focus, analysis, persuasion, evidence, data, ability_name, ability_desc):
+        super().__init__(name, description, cost); self.hp=hp; self.max_hp=hp; self.focus=focus; self.analysis=analysis; self.persuasion=persuasion; self.evidence=evidence; self.data=data; self.ability_name=ability_name; self.ability_desc=ability_desc;
+
 class LogicCard(Card):
     def __init__(self, name, description, cost, base_damage, tax_type: list[TaxType], attack_category: list[AttackCategory], text, special_effect=None, special_bonus=None):
         super().__init__(name, description, cost); self.base_damage=base_damage; self.tax_type=tax_type; self.attack_category=attack_category; self.text=text; self.special_effect=special_effect; self.special_bonus=special_bonus;
@@ -51,25 +54,25 @@ class Artifact:
     def __init__(self, name, description, effect): self.name=name; self.description=description; self.effect=effect;
 
 # --- 2. 게임 데이터베이스 (DB) ---
-# --- [수정] '[현직]' 문구 삭제 ---
+# --- [수정] '[현직]' 문구 및 'grade_num' 파라미터 모두 제거 ---
 TAX_MAN_DB = {
-    "lim": TaxManCard(name="임향수", grade_num=4, description="조사통의 대부. 대기업 비자금, 불법 증여 조사 지휘 경험 풍부.", cost=0, hp=120, focus=3, analysis=10, persuasion=10, evidence=10, data=10, ability_name="[기획 조사]", ability_desc="매 턴 집중력+1. 분석/데이터 스탯 비례 비용/자본 카드 피해량 증가."),
-    "han": TaxManCard(name="한중후", grade_num=5, description="국제조세 전문가. OECD 파견 경험으로 국제 공조 및 BEPS 이해 깊음.", cost=0, hp=80, focus=2, analysis=9, persuasion=6, evidence=8, data=9, ability_name="[역외탈세 추적]", ability_desc="'외국계' 기업 또는 '자본 거래' 혐의 공격 시 최종 피해량 +30%."),
-    "baek": TaxManCard(name="백용호", grade_num=5, description="세제 전문가. TIS, NTIS 등 과학세정 인프라 구축 경험.", cost=0, hp=90, focus=2, analysis=7, persuasion=10, evidence=9, data=7, ability_name="[TIS 분석]", ability_desc="'금융거래 분석', '빅데이터 분석' 등 데이터 관련 카드 비용 -1."),
-    "seo": TaxManCard(name="서영택", grade_num=6, description="조사 전문가. 변칙 상속/증여 조사를 강력 지휘. 대기업 조사 정통.", cost=0, hp=100, focus=2, analysis=8, persuasion=9, evidence=8, data=7, ability_name="[대기업 저격]", ability_desc="'대기업', '외국계' 기업의 '법인세' 혐의 카드 공격 시 최종 피해량 +25%."),
-    "kim_dj": TaxManCard(name="김대조", grade_num=5, description="세정 운영 전문가. 데이터 기반 대규모 조사 경험.", cost=0, hp=90, focus=2, analysis=10, persuasion=7, evidence=7, data=10, ability_name="[부동산 투기 조사]", ability_desc="팀 '데이터' 스탯 50+ 시, 턴 시작 시 '금융거래 분석' 카드 1장 생성."),
-    "lee_hd": TaxManCard(name="이현동", grade_num=5, description="강력한 추진력의 조사통. 지하경제 양성화 및 역외탈세 추적 의지 강함.", cost=0, hp=100, focus=3, analysis=7, persuasion=8, evidence=10, data=8, ability_name="[지하경제 양성화]", ability_desc="'고의적 누락(Intentional)' 혐의 공격의 최종 피해량 +20%."),
-    "kim": TaxManCard(name="김철주", grade_num=6, description="현장 전문가. 서울청 조사0국 '지하경제 양성화' 관련 조사 다수 수행.", cost=0, hp=110, focus=2, analysis=6, persuasion=8, evidence=9, data=5, ability_name="[압수수색]", ability_desc="'현장 압수수색' 카드 사용 시 15% 확률로 '결정적 증거' 추가 획득."),
-    "oh": TaxManCard(name="전팔성", grade_num=7, description="[가상] 데이터 전문가. TIS 초기 멤버로 시스템 이해도 높음. 신종 거래 분석 능함.", cost=0, hp=110, focus=2, analysis=7, persuasion=6, evidence=7, data=8, ability_name="[데이터 마이닝]", ability_desc="기본 적출액 70억 이상 '데이터' 관련 카드(자금출처조사 등) 피해량 +15."),
-    "jo": TaxManCard(name="조용규", grade_num=7, description="세법 이론가. 교육원 교수 경험. 법리 해석과 판례 분석 뛰어남.", cost=0, hp=80, focus=3, analysis=9, persuasion=7, evidence=6, data=7, ability_name="[세법 교본]", ability_desc="'판례 제시', '법령 재검토' 카드의 효과(피해량/드로우) 2배 적용."),
-    "park": TaxManCard(name="박조연", grade_num=8, description="[가상] 세법 신동. 세무사/CPA 동시 합격 특채. 날카로운 법리 검토 능력.", cost=0, hp=70, focus=3, analysis=7, persuasion=5, evidence=6, data=7, ability_name="[법리 검토]", ability_desc="턴마다 처음 사용하는 '분석' 또는 '설득' 유형 카드의 비용 -1."),
-    "lee": TaxManCard(name="이찰수", grade_num=7, description="[가상] 7급 공채 신입. 열정 넘치나 경험 부족. 기본기 충실.", cost=0, hp=80, focus=2, analysis=5, persuasion=5, evidence=5, data=5, ability_name="[기본기]", ability_desc="'기본 경비 적정성 검토', '단순 경비 처리 오류 지적' 카드 피해량 +8."),
-    "ahn_wg": TaxManCard(name="안원규", grade_num=6, description="특수 조사의 귀재. 서울청 조사0국 등에서 대기업 비자금 등 특수 조사 경험 풍부.", cost=0, hp=110, focus=2, analysis=8, persuasion=5, evidence=10, data=6, ability_name="[특수 조사]", ability_desc="'현장 압수수색', '차명계좌 추적' 카드 비용 -1 (최소 0)."),
-    "yoo_jj": TaxManCard(name="유재전", grade_num=6, description="관리자. 서울청 조사0국 대기업 정기 조사 및 상속/증여세 조사 담당. 분석/설득 강점.", cost=0, hp=100, focus=2, analysis=8, persuasion=7, evidence=7, data=7, ability_name="[정기 조사 전문]", ability_desc="'단순 오류(Error)' 혐의 공격 시, 팀 '설득' 스탯 10당 피해량 +1."),
-    "kim_th": TaxManCard(name="김태후", grade_num=6, description="관리자. 중부청 조사0국 대기업/중견기업 심층 기획 및 국제거래 조사 담당. 증거 확보/데이터 분석 탁월.", cost=0, hp=105, focus=2, analysis=9, persuasion=5, evidence=9, data=8, ability_name="[심층 기획 조사]", ability_desc="'자본 거래(Capital Tx)' 혐의 공격 시, 팀 '증거' 스탯의 10%만큼 추가 피해."),
-    "jeon_j": TaxManCard(name="전준", grade_num=7, description="실무 과장. 중부청 조사0국. 조사 현장 지휘 경험 풍부, 팀원 능력 활용 능숙.", cost=0, hp=85, focus=3, analysis=7, persuasion=6, evidence=6, data=6, ability_name="[실무 지휘]", ability_desc="턴 시작 시, **팀**의 다음 카드 사용 비용 -1.")
+    "lim": TaxManCard(name="임향수", description="조사통의 대부. 대기업 비자금, 불법 증여 조사 지휘 경험 풍부.", cost=0, hp=120, focus=3, analysis=10, persuasion=10, evidence=10, data=10, ability_name="[기획 조사]", ability_desc="매 턴 집중력+1. 분석/데이터 스탯 비례 비용/자본 카드 피해량 증가."),
+    "han": TaxManCard(name="한중후", description="국제조세 전문가. OECD 파견 경험으로 국제 공조 및 BEPS 이해 깊음.", cost=0, hp=80, focus=2, analysis=9, persuasion=6, evidence=8, data=9, ability_name="[역외탈세 추적]", ability_desc="'외국계' 기업 또는 '자본 거래' 혐의 공격 시 최종 피해량 +30%."),
+    "baek": TaxManCard(name="백용호", description="세제 전문가. TIS, NTIS 등 과학세정 인프라 구축 경험.", cost=0, hp=90, focus=2, analysis=7, persuasion=10, evidence=9, data=7, ability_name="[TIS 분석]", ability_desc="'금융거래 분석', '빅데이터 분석' 등 데이터 관련 카드 비용 -1."),
+    "seo": TaxManCard(name="서영택", description="조사 전문가. 변칙 상속/증여 조사를 강력 지휘. 대기업 조사 정통.", cost=0, hp=100, focus=2, analysis=8, persuasion=9, evidence=8, data=7, ability_name="[대기업 저격]", ability_desc="'대기업', '외국계' 기업의 '법인세' 혐의 카드 공격 시 최종 피해량 +25%."),
+    "kim_dj": TaxManCard(name="김대조", description="세정 운영 전문가. 데이터 기반 대규모 조사 경험.", cost=0, hp=90, focus=2, analysis=10, persuasion=7, evidence=7, data=10, ability_name="[부동산 투기 조사]", ability_desc="팀 '데이터' 스탯 50+ 시, 턴 시작 시 '금융거래 분석' 카드 1장 생성."),
+    "lee_hd": TaxManCard(name="이현동", description="강력한 추진력의 조사통. 지하경제 양성화 및 역외탈세 추적 의지 강함.", cost=0, hp=100, focus=3, analysis=7, persuasion=8, evidence=10, data=8, ability_name="[지하경제 양성화]", ability_desc="'고의적 누락(Intentional)' 혐의 공격의 최종 피해량 +20%."),
+    "kim": TaxManCard(name="김철주", description="현장 전문가. 서울청 조사0국 '지하경제 양성화' 관련 조사 다수 수행.", cost=0, hp=110, focus=2, analysis=6, persuasion=8, evidence=9, data=5, ability_name="[압수수색]", ability_desc="'현장 압수수색' 카드 사용 시 15% 확률로 '결정적 증거' 추가 획득."),
+    "oh": TaxManCard(name="전팔성", description="[가상] 데이터 전문가. TIS 초기 멤버로 시스템 이해도 높음. 신종 거래 분석 능함.", cost=0, hp=110, focus=2, analysis=7, persuasion=6, evidence=7, data=8, ability_name="[데이터 마이닝]", ability_desc="기본 적출액 70억 이상 '데이터' 관련 카드(자금출처조사 등) 피해량 +15."),
+    "jo": TaxManCard(name="조용규", description="세법 이론가. 교육원 교수 경험. 법리 해석과 판례 분석 뛰어남.", cost=0, hp=80, focus=3, analysis=9, persuasion=7, evidence=6, data=7, ability_name="[세법 교본]", ability_desc="'판례 제시', '법령 재검토' 카드의 효과(피해량/드로우) 2배 적용."),
+    "park": TaxManCard(name="박조연", description="[가상] 세법 신동. 세무사/CPA 동시 합격 특채. 날카로운 법리 검토 능력.", cost=0, hp=70, focus=3, analysis=7, persuasion=5, evidence=6, data=7, ability_name="[법리 검토]", ability_desc="턴마다 처음 사용하는 '분석' 또는 '설득' 유형 카드의 비용 -1."),
+    "lee": TaxManCard(name="이찰수", description="[가상] 7급 공채 신입. 열정 넘치나 경험 부족. 기본기 충실.", cost=0, hp=80, focus=2, analysis=5, persuasion=5, evidence=5, data=5, ability_name="[기본기]", ability_desc="'기본 경비 적정성 검토', '단순 경비 처리 오류 지적' 카드 피해량 +8."),
+    "ahn_wg": TaxManCard(name="안원규", description="특수 조사의 귀재. 서울청 조사0국 등에서 대기업 비자금 등 특수 조사 경험 풍부.", cost=0, hp=110, focus=2, analysis=8, persuasion=5, evidence=10, data=6, ability_name="[특수 조사]", ability_desc="'현장 압수수색', '차명계좌 추적' 카드 비용 -1 (최소 0)."),
+    "yoo_jj": TaxManCard(name="유재전", description="관리자. 서울청 조사0국 대기업 정기 조사 및 상속/증여세 조사 담당. 분석/설득 강점.", cost=0, hp=100, focus=2, analysis=8, persuasion=7, evidence=7, data=7, ability_name="[정기 조사 전문]", ability_desc="'단순 오류(Error)' 혐의 공격 시, 팀 '설득' 스탯 10당 피해량 +1."),
+    "kim_th": TaxManCard(name="김태후", description="관리자. 중부청 조사0국 대기업/중견기업 심층 기획 및 국제거래 조사 담당. 증거 확보/데이터 분석 탁월.", cost=0, hp=105, focus=2, analysis=9, persuasion=5, evidence=9, data=8, ability_name="[심층 기획 조사]", ability_desc="'자본 거래(Capital Tx)' 혐의 공격 시, 팀 '증거' 스탯의 10%만큼 추가 피해."),
+    "jeon_j": TaxManCard(name="전준", description="실무 과장. 중부청 조사0국. 조사 현장 지휘 경험 풍부, 팀원 능력 활용 능숙.", cost=0, hp=85, focus=3, analysis=7, persuasion=6, evidence=6, data=6, ability_name="[실무 지휘]", ability_desc="턴 시작 시, **팀**의 다음 카드 사용 비용 -1.")
 }
-# --- [수정] 카드 태그 완화 (지난 요청에서 이미 반영됨)
+
 LOGIC_CARD_DB = {
     "c_tier_01": LogicCard(name="단순 자료 대사", cost=0, base_damage=4, tax_type=[TaxType.COMMON], attack_category=[AttackCategory.COMMON], description="매입/매출 자료 단순 비교.", text="자료 대사 기본 습득."),
     "c_tier_02": LogicCard(name="법령 재검토", cost=0, base_damage=0, tax_type=[TaxType.COMMON], attack_category=[AttackCategory.COMMON], description="카드 1장 뽑기.", text="관련 법령 재검토.", special_effect={"type": "draw", "value": 1}),
@@ -91,6 +94,11 @@ LOGIC_CARD_DB = {
     "a_tier_01": LogicCard(name="자금출처조사", cost=4, base_damage=90, tax_type=[TaxType.CORP], attack_category=[AttackCategory.CAPITAL, AttackCategory.REVENUE], description="고액 자산가의 자산 형성 과정에서 불분명한 자금의 출처를 소명하도록 요구하고, 탈루 혐의를 조사합니다.", text="수십 개 차명계좌 흐름 파악."),
     "s_tier_01": LogicCard(name="국제거래 과세논리", cost=4, base_damage=65, tax_type=[TaxType.CORP], attack_category=[AttackCategory.CAPITAL, AttackCategory.REVENUE, AttackCategory.COST], description="이전가격 조작, 고정사업장 회피 등 국제거래를 이용한 조세회피 전략을 분석하고 과세 논리를 개발합니다.", text="BEPS 보고서 이해.", special_bonus={'target_method': MethodType.CAPITAL_TX, 'multiplier': 2.0, 'bonus_desc': '자본 거래에 2배 피해'}),
     "s_tier_02": LogicCard(name="조세피난처 역외탈세", cost=5, base_damage=130, tax_type=[TaxType.CORP], attack_category=[AttackCategory.CAPITAL, AttackCategory.REVENUE], description="조세피난처에 설립된 특수목적회사(SPC) 등을 이용하여 해외 소득을 은닉한 역외탈세 혐의를 조사합니다.", text="BVI, 케이맨 SPC 실체 규명.", special_bonus={'target_method': MethodType.CAPITAL_TX, 'multiplier': 1.5, 'bonus_desc': '자본 거래에 1.5배 피해'}),
+
+    # --- [신규] 3장의 카드 추가 ---
+    "vat_01": LogicCard(name="위장가맹점 추적", cost=2, base_damage=20, tax_type=[TaxType.VAT, TaxType.CORP], attack_category=[AttackCategory.REVENUE], description="신용카드 결제 내역을 분석하여, 타 업종으로 위장한 가맹점을 통한 매출 누락을 적발합니다.", text="PG사 자료 확보.", special_bonus={'target_method': MethodType.INTENTIONAL, 'multiplier': 1.5, 'bonus_desc': '고의적 누락에 1.5배 피해'}),
+    "err_01": LogicCard(name="세무조정 오류 시정", cost=2, base_damage=25, tax_type=[TaxType.COMMON], attack_category=[AttackCategory.COMMON], description="기업의 세무조정계산서를 검토하여, 감가상각, 충당금 설정 등에서 발생한 명백한 회계/세법 적용 오류를 지적합니다.", text="조정계산서 검토.", special_bonus={'target_method': MethodType.ERROR, 'multiplier': 2.0, 'bonus_desc': '단순 오류에 2배 피해'}),
+    "vat_02": LogicCard(name="매입세액 부당공제", cost=2, base_damage=28, tax_type=[TaxType.VAT], attack_category=[AttackCategory.COST, AttackCategory.COMMON], description="사업과 관련 없는 매입(예: 대표 개인 골프장 비용)에 대한 세금계산서를 받아 매입세액을 부당하게 공제/환급받은 것을 적발합니다.", text="사적 경비 부인.", special_bonus={'target_method': MethodType.INTENTIONAL, 'multiplier': 1.5, 'bonus_desc': '고의적 누락에 1.5배 피해'}),
 }
 ARTIFACT_DB = {
     "coffee": Artifact(name="☕ 믹스 커피", description="턴 시작 시 집중력 +1.", effect={"type": "on_turn_start", "value": 1, "subtype": "focus"}),
@@ -99,7 +107,7 @@ ARTIFACT_DB = {
     "recorder": Artifact(name="🎤 녹음기", description="팀 '설득(Persuasion)' 스탯 +5.", effect={"type": "on_battle_start", "value": 5, "subtype": "stat_persuasion"}),
     "book": Artifact(name="📖 오래된 법전", description="'판례 제시', '법령 재검토' 비용 -1.", effect={"type": "on_cost_calculate", "value": -1, "target_cards": ["판례 제시", "법령 재검토"]})
 }
-# --- [수정] (주)대롬건설 교육 내용 보강 (지난 요청에서 이미 반영됨)
+
 COMPANY_DB = [
     # --- C Group (Easy, 9-11th) ---
     Company( # 11등
@@ -231,13 +239,12 @@ COMPANY_DB = [
 
 
 # --- 3. 게임 상태 초기화 및 관리 ---
-# --- [수정] 팀원 중복 방지 로직 강화 ---
 def initialize_game(chosen_lead: TaxManCard, chosen_artifact: Artifact):
     seed = st.session_state.get('seed', 0); random.seed(seed if seed != 0 else None)
     if seed != 0: st.toast(f"ℹ️ RNG 시드 {seed} 고정됨.")
     team_members = [chosen_lead]; all_mem = list(TAX_MAN_DB.values()); 
     
-    # [수정] m != chosen_lead 대신 m.name != chosen_lead.name 으로 비교
+    # [수정] m.name을 기준으로 중복 제거 (지난 요청에서 이미 반영됨)
     remain = [m for m in all_mem if m.name != chosen_lead.name]; 
     
     team_members.extend(random.sample(remain, min(2, len(remain)))); st.session_state.player_team = team_members
@@ -615,7 +622,7 @@ def enemy_turn():
     elif "도피" in act or "잠적" in act or "시간" in act: log_icon = "⏳"
     prefix = f"{log_icon} [기업]" if not (co.size in ["대기업", "외국계", "글로벌 기업"] and "로펌" in act) else f"{log_icon} [로펌]"; log_message(f"{prefix} {act} (팀 사기 저하 ❤️-{dmg}!)", "error")
 
-# --- [수정] 전투 승리 시 30% 자동 회복 기능 추가 ---
+# --- [수정] 전투 승리 시 30% 자동 회복 기능 추가 (지난 요청에서 이미 반영됨) ---
 def check_battle_end():
     company = st.session_state.current_battle_company
     if company.current_collected_tax >= company.tax_target:
@@ -670,11 +677,9 @@ def log_message(message, level="normal"):
     if len(st.session_state.battle_log) > 50:
         st.session_state.battle_log.pop()
 
-def go_to_next_stage(add_card=None, heal_amount=0): # heal_amount=0 은 이제 기본값으로만 사용됨
+# --- [수정] heal_amount 파라미터는 더 이상 사용되지 않음 ---
+def go_to_next_stage(add_card=None):
     if add_card: st.session_state.player_deck.append(add_card); st.toast(f"[{add_card.name}] 덱 추가!", icon="🃏")
-    
-    # [수정] 수동 회복 로직은 이제 사용되지 않음 (자동 회복으로 대체)
-    # if heal_amount > 0: st.session_state.team_hp = min(st.session_state.team_max_hp, st.session_state.team_hp + heal_amount); st.toast(f"팀 휴식 (체력 +{heal_amount})", icon="❤️")
     
     if 'reward_cards' in st.session_state: del st.session_state.reward_cards
     st.session_state.current_stage_level += 1;
@@ -730,13 +735,16 @@ def show_main_menu():
         """, unsafe_allow_html=True
     )
 
-
+# --- [수정] format_func에서 등급(grade) 표시 제거 ---
 def show_setup_draft_screen():
     st.title("👨‍💼 조사팀 구성"); st.markdown("팀 **리더**와 시작 **조사도구** 선택:")
     if 'draft_team_choices' not in st.session_state or 'draft_artifact_choices' not in st.session_state:
         st.error("드래프트 정보 없음..."); st.button("메인 메뉴로", on_click=lambda: st.session_state.update(game_state="MAIN_MENU")); return
     teams = st.session_state.draft_team_choices; arts = st.session_state.draft_artifact_choices
-    st.markdown("---"); st.subheader("1. 팀 리더 선택:"); lead_idx = st.radio("리더", range(len(teams)), format_func=lambda i: f"**{teams[i].name} ({teams[i].grade}급)** | {teams[i].description}\n    └ **{teams[i].ability_name}**: {teams[i].ability_desc}", label_visibility="collapsed")
+    st.markdown("---"); st.subheader("1. 팀 리더 선택:"); 
+    lead_idx = st.radio("리더", range(len(teams)), 
+                        format_func=lambda i: f"**{teams[i].name}** | {teams[i].description}\n    └ **{teams[i].ability_name}**: {teams[i].ability_desc}", 
+                        label_visibility="collapsed")
     st.markdown("---"); st.subheader("2. 시작 조사도구 선택:"); art_idx = st.radio("도구", range(len(arts)), format_func=lambda i: f"**{arts[i].name}** | {arts[i].description}", label_visibility="collapsed")
     st.markdown("---");
     if st.button("이 구성으로 조사 시작", type="primary", use_container_width=True):
@@ -776,6 +784,7 @@ def show_map_screen():
         st.session_state.game_state = "GAME_CLEAR"
         st.rerun()
 
+# --- [수정] 손패 UI 축소 (col_hand) ---
 def show_battle_screen():
     if not st.session_state.current_battle_company: st.error("오류: 기업 정보 없음..."); st.session_state.game_state = "MAP"; st.rerun(); return
     co = st.session_state.current_battle_company; st.title(f"⚔️ {co.name} 조사 중..."); st.markdown("---")
@@ -853,7 +862,7 @@ def show_battle_screen():
             act_cols = st.columns(2)
             act_cols[0].button("➡️ 턴 종료", on_click=end_player_turn, use_container_width=True, type="primary")
             with act_cols[1]:
-                c1, c2 = st.columns(2) # 버튼을 50% 칼럼 안의 50% 칼럼에 넣어 작게 만듦
+                c1, c2 = st.columns(2) 
                 with c1:
                     st.button("⚡ 자동", on_click=execute_auto_attack, use_container_width=True, type="secondary", help="[❤️-1, 💥-25% 페널티] 가장 강력한 카드로 자동 공격합니다.")
 
@@ -862,46 +871,60 @@ def show_battle_screen():
 
     with col_hand:
         st.subheader(f"🃏 손패 ({len(st.session_state.player_hand)})")
-        if not st.session_state.player_hand: st.write("(손패 없음)")
         
-        # --- [수정] 손패 UI 축소 ---
-        for i, card in enumerate(st.session_state.player_hand):
-            if i >= len(st.session_state.player_hand): continue
-            cost = calculate_card_cost(card); afford = st.session_state.player_focus_current >= cost; color = "blue" if afford else "red"; selected = (st.session_state.get("selected_card_index") == i)
+        # --- [수정] 손패 UI를 스크롤 가능한 고정 높이 컨테이너에 담고, 내부 UI를 압축 ---
+        hand_container = st.container(height=700) # 손패 영역 높이 고정
             
-            with st.container(border=True):
-                title = f"**{card.name}** | :{color}[{cost} 🧠]" + (" (선택됨)" if selected else "")
-                st.markdown(title)
+        with hand_container:
+            if not st.session_state.player_hand: st.write("(손패 없음)")
+            
+            for i, card in enumerate(st.session_state.player_hand):
+                if i >= len(st.session_state.player_hand): continue
+                cost = calculate_card_cost(card); afford = st.session_state.player_focus_current >= cost; color = "blue" if afford else "red"; selected = (st.session_state.get("selected_card_index") == i)
                 
-                c_types=[t.value for t in card.tax_type]; c_cats=[c.value for c in card.attack_category]
-                st.caption(f"세목:`{'`,`'.join(c_types)}` | 유형:`{'`,`'.join(c_cats)}`")
-                
-                st.markdown(f"<small>{card.description}</small>", unsafe_allow_html=True)
-                
-                info_parts = []
-                if card.base_damage > 0: info_parts.append(f"**피해:** {card.base_damage}억")
-                if card.special_bonus: info_parts.append(f"**특효:** {card.special_bonus.get('bonus_desc')}")
-                
-                if info_parts:
-                    st.markdown(" | ".join(info_parts))
-                else:
-                    st.markdown("---") # 공간 확보
-                
-                btn_label = f"선택: {card.name}"
-                if card.special_effect and card.special_effect.get("type") in ["search_draw", "draw"]: btn_label = f"사용: {card.name}"
-                disabled = not afford; help = f"집중력 부족! ({cost})" if not afford else None
-                if st.button(btn_label, key=f"play_{i}", use_container_width=True, disabled=disabled, help=help):
-                    select_card_to_play(i)
-        # --- UI 축소 끝 ---
+                with st.container(border=True):
+                    selected_str = " (선택됨)" if selected else ""
+                    title_line = f":{color}[**{cost}🧠**] **{card.name}**{selected_str}"
+                    
+                    info_parts = []
+                    if card.base_damage > 0: info_parts.append(f"**피해 {card.base_damage}억**")
+                    if card.special_bonus: info_parts.append(f":orange[{card.special_bonus.get('bonus_desc')}]")
+                    
+                    info_line = " | ".join(info_parts)
+                    
+                    # 유틸리티 카드 정보
+                    if not info_line:
+                        if card.special_effect and card.special_effect.get("type") == "draw":
+                            info_line = f"✨ 카드 {card.special_effect.get('value')}장 드로우"
+                        elif card.special_effect and card.special_effect.get("type") == "search_draw":
+                            info_line = "🔍 혐의 관련 카드 서치"
+                        else:
+                            info_line = f"{card.description[:20]}..." # 정보 없는 카드(예: 단순 자료 대사)
+                    
+                    # 타이틀과 정보 라인을 한 줄에 결합 (정보는 small 태그로)
+                    st.markdown(f"{title_line}\n<small>{info_line}</small>", unsafe_allow_html=True)
+                    
+                    btn_label = "선택" if (card.base_damage > 0) else "사용"
+                    if card.special_effect and card.special_effect.get("type") in ["search_draw", "draw"]: btn_label = "사용"
+                    
+                    disabled = not afford
+                    # [수정] 상세 설명은 툴팁(help)으로 이동
+                    help_text = f"[{card.name}] {card.description}"
+                    if not afford: help_text = f"집중력 부족! ({cost})"
+                    
+                    if st.button(btn_label, key=f"play_{i}", use_container_width=True, disabled=disabled, help=help_text):
+                        select_card_to_play(i)
+        # --- 손패 UI 수정 끝 ---
 
-# --- [수정] 덱 정비/팀 정비 탭 제거, 자동 회복으로 대체 ---
+# --- [수정] 덱 정비/팀 정비 탭 제거 (지난 요청에서 이미 반영됨) ---
 def show_reward_screen():
     st.header("🎉 조사 승리!"); st.balloons(); co = st.session_state.current_battle_company; st.success(f"**{co.name}** 조사 완료. 총 {co.current_collected_tax:,}억원 추징."); st.markdown("---")
+    
+    # [수정] 승리 시 자동 회복 로그가 이미 check_battle_end에서 발생함. 여기서는 UI만.
     
     if st.session_state.current_stage_level >= len(st.session_state.company_order) - 1: # 0,1,2,3 -> 3일때
         st.session_state.game_state = "GAME_CLEAR"; st.rerun(); return
 
-    # --- [수정] 탭 제거, 카드 획득만 표시 ---
     st.subheader("🎁 획득할 카드 1장 선택")
     if 'reward_cards' not in st.session_state or not st.session_state.reward_cards:
         pool = [c for c in LOGIC_CARD_DB.values() if not (c.cost == 0 and c.special_effect and c.special_effect.get("type") == "draw")]
@@ -927,20 +950,13 @@ def show_reward_screen():
                 elif card.special_effect and card.special_effect.get("type") == "draw": st.info(f"**드로우:** +{card.special_effect.get('value', 0)}")
                 if card.special_bonus: st.warning(f"**보너스:** {card.special_bonus.get('bonus_desc')}")
                 
-                # [수정] 버튼 클릭 시 heal_amount 없이 다음 스테이지로
                 if st.button(f"선택: {card.name}", key=f"reward_{i}", use_container_width=True, type="primary"):
                     go_to_next_stage(add_card=card)
                     
-    # --- [삭제] t2 (팀 정비) 탭 ---
-    
-    # --- [신규] 카드 획득을 원하지 않을 경우를 위한 '스킵' 버튼 ---
     st.markdown("---")
     st.button("카드 획득 안 함 (다음 스테이지로)", on_click=go_to_next_stage, type="secondary", use_container_width=True)
 
     
-# --- [삭제] 덱 정비(카드 제거) 화면 함수 (지난 요청에서 이미 반영됨) ---
-# def show_reward_remove_screen(): ...
-
 def show_game_over_screen():
     st.header("... 조사 중단 ..."); st.error("팀 체력 소진.")
     st.metric("최종 총 추징 세액", f"💰 {st.session_state.total_collected_tax:,} 억원"); st.metric("진행 스테이지", f"📍 {st.session_state.current_stage_level + 1} / 4")
@@ -955,10 +971,10 @@ def show_game_clear_screen():
     st.image("https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=1740&auto=format&fit=crop", caption="성공적으로 임무를 완수한 조사팀.", width=400)
     st.button("🏆 메인 메뉴로 돌아가기", on_click=lambda: st.session_state.update(game_state="MAIN_MENU"), type="primary", use_container_width=True)
 
+# --- [수정] 사이드바에서 등급(grade) 표시 제거 ---
 def show_player_status_sidebar():
     with st.sidebar:
         st.title("👨‍💼 조사팀 현황"); st.metric("💰 총 추징 세액", f"{st.session_state.total_collected_tax:,} 억원")
-        # [수정] 전투 중에도 현재 체력 표시
         st.metric("❤️ 현재 팀 체력", f"{st.session_state.team_hp}/{st.session_state.team_max_hp}")
         
         st.markdown("---")
@@ -966,7 +982,9 @@ def show_player_status_sidebar():
             stats = st.session_state.team_stats; st.markdown(f"- 분석력: {stats['analysis']}\n- 설득력: {stats['persuasion']}\n- 증거력: {stats['evidence']}\n- 데이터: {stats['data']}")
         st.subheader("👥 팀원 (3명)")
         for m in st.session_state.player_team:
-             with st.expander(f"**{m.name}** ({m.grade}급)"): st.markdown(f"HP:{m.hp}/{m.max_hp}, Focus:{m.focus}\n**{m.ability_name}**: {m.ability_desc}\n({m.description})")
+             # [수정] ({m.grade}급) 제거
+             with st.expander(f"**{m.name}**"): 
+                 st.markdown(f"HP:{m.hp}/{m.max_hp}, Focus:{m.focus}\n**{m.ability_name}**: {m.ability_desc}\n({m.description})")
         st.markdown("---")
         total = len(st.session_state.player_deck + st.session_state.player_discard + st.session_state.player_hand); st.subheader(f"📚 보유 덱 ({total}장)")
         with st.expander("덱 구성 보기"):
@@ -1005,7 +1023,6 @@ def main():
         "MAP": show_map_screen,
         "BATTLE": show_battle_screen,
         "REWARD": show_reward_screen,
-        # 'REWARD_REMOVE' 페이지 제거됨
         "GAME_OVER": show_game_over_screen,
         "GAME_CLEAR": show_game_clear_screen
     }
