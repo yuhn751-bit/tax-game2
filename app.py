@@ -243,10 +243,8 @@ def execute_attack(card_index, tactic_index): # SyntaxError 수정됨
     if tactic.exposed_amount >= tactic.total_amount and not tactic.is_cleared:
         tactic.is_cleared = True
         log_message(f"🔥 [{tactic.name}] 혐의 완전 적발! ({tactic.total_amount}억원)", "warning")
-        if "벤츠" in card.text:
-            log_message("💬 [현장] 법인소유 벤츠 발견!", "info")
-        if "압수수색" in card.name:
-            log_message("💬 [현장] 비밀장부 확보!", "info")
+        if "벤츠" in card.text: log_message("💬 [현장] 법인소유 벤츠 발견!", "info")
+        if "압수수색" in card.name: log_message("💬 [현장] 비밀장부 확보!", "info")
     # --- ---
     st.session_state.player_discard.append(st.session_state.player_hand.pop(card_index)); st.session_state.selected_card_index = None; check_battle_end(); st.rerun()
 
@@ -294,7 +292,7 @@ def check_battle_end(): # SyntaxError 수정됨
         return True
     return False
 
-def start_battle(co_template):
+def start_battle(co_template): # SyntaxError 수정됨
     co = copy.deepcopy(co_template); st.session_state.current_battle_company = co; st.session_state.game_state = "BATTLE"; st.session_state.battle_log = [f"--- {co.name} ({co.size}) 조사 시작 ---"]
     log_message(f"🏢 **{co.name}** 주요 탈루 혐의:", "info"); t_types = set();
     for t in co.tactics: tax = [tx.value for tx in t.tax_type] if isinstance(t.tax_type, list) else [t.tax_type.value]; log_message(f"- **{t.name}** ({'/'.join(tax)}, {t.method_type.value}, {t.tactic_category.value})", "info"); t_types.add(t.method_type)
@@ -304,7 +302,12 @@ def start_battle(co_template):
     if MethodType.ERROR in t_types and MethodType.INTENTIONAL not in t_types: guide += "단순 오류: 규정/판례 제시, 설득 효과적. "; has_g = True
     log_message(guide if has_g else "[조사 가이드] 기업 특성/혐의 고려, 전략적 접근.", "warning"); log_message("---", "info")
     st.session_state.bonus_draw = 0
-    for art in st.session_state.player_artifacts: log_message(f"✨ [조사도구] '{art.name}' 효과 준비.", "info"); if art.effect["type"] == "on_battle_start" and art.effect["subtype"] == "draw": st.session_state.bonus_draw += art.effect["value"]
+    # --- SyntaxError 수정된 부분 ---
+    for art in st.session_state.player_artifacts:
+        log_message(f"✨ [조사도구] '{art.name}' 효과 준비.", "info")
+        if art.effect["type"] == "on_battle_start" and art.effect["subtype"] == "draw":
+            st.session_state.bonus_draw += art.effect["value"]
+    # --- ---
     st.session_state.player_deck.extend(st.session_state.player_discard); st.session_state.player_deck = random.sample(st.session_state.player_deck, len(st.session_state.player_deck)); st.session_state.player_discard = []; st.session_state.player_hand = []; start_player_turn()
 
 def log_message(message, level="normal"):
