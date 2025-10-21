@@ -220,20 +220,20 @@ def execute_attack(card_index, tactic_index): # SyntaxError 수정됨
     if team_bonus > 0: log_message(f"📈 [팀 스탯 보너스] +{team_bonus}!", "info"); damage += team_bonus
     if "이철수" in [m.name for m in st.session_state.player_team] and card.name in ["기본 경비 적정성 검토", "단순 경비 처리 오류 지적"]: damage += 8; log_message("✨ [기본기] +8!", "info")
     if "임향수" in [m.name for m in st.session_state.player_team] and ('분석' in card.name or '자료' in card.name or '추적' in card.name or AttackCategory.CAPITAL in card.attack_category): bonus = int(team_stats["analysis"] * 0.1 + team_stats["data"] * 0.1); damage += bonus; log_message(f"✨ [기획 조사] +{bonus}!", "info")
-    # --- SyntaxError 수정된 부분 ---
     if "유재준" in [m.name for m in st.session_state.player_team] and tactic.method_type == MethodType.ERROR:
         bonus = int(team_stats["persuasion"] / 10)
-        if bonus > 0:
-            damage += bonus
-            log_message(f"✨ [정기 조사] +{bonus}!", "info")
-    # --- ---
+        if bonus > 0: damage += bonus; log_message(f"✨ [정기 조사] +{bonus}!", "info")
+    # --- SyntaxError 수정된 부분 ---
     if "김태호" in [m.name for m in st.session_state.player_team] and AttackCategory.CAPITAL in card.attack_category:
         bonus = int(team_stats["evidence"] * 0.1)
         if bonus > 0:
             damage += bonus
             log_message(f"✨ [심층 기획] +{bonus}!", "info")
+    # --- ---
     mult = 1.0; mult_log = ""
-    if card.special_bonus and card.special_bonus.get('target_method') == tactic.method_type: m = card.special_bonus.get('multiplier', 1.0); mult *= m; mult_log += f"🔥[{card.special_bonus.get('bonus_desc')}] "; if "조용규" in [m.name for m in st.session_state.player_team] and card.name == "판례 제시": mult *= 2; mult_log += "✨[세법 교본 x2] "
+    if card.special_bonus and card.special_bonus.get('target_method') == tactic.method_type:
+        m = card.special_bonus.get('multiplier', 1.0); mult *= m; mult_log += f"🔥[{card.special_bonus.get('bonus_desc')}] "
+        if "조용규" in [m.name for m in st.session_state.player_team] and card.name == "판례 제시": mult *= 2; mult_log += "✨[세법 교본 x2] "
     if "한중히" in [m.name for m in st.session_state.player_team] and (company.size == "외국계" or tactic.method_type == MethodType.CAPITAL_TX): mult *= 1.3; mult_log += "✨[역외탈세 +30%] "
     if "서영택" in [m.name for m in st.session_state.player_team] and (company.size == "대기업" or company.size == "외국계") and TaxType.CORP in card.tax_type: mult *= 1.25; mult_log += "✨[대기업 +25%] "
     if "이현동" in [m.name for m in st.session_state.player_team] and tactic.method_type == MethodType.INTENTIONAL: mult *= 1.2; mult_log += "✨[지하경제 +20%] "
@@ -300,7 +300,7 @@ def go_to_next_stage(add_card=None, heal_amount=0):
     if 'reward_cards' in st.session_state: del st.session_state.reward_cards
     st.session_state.game_state = "MAP"; st.session_state.current_stage_level += 1; st.rerun()
 
-# --- 5. UI 화면 함수 ---
+# --- 5. UI 화면 함수 --- (이하 동일)
 
 def show_main_menu():
     st.title("💼 세무조사: 덱빌딩 로그라이크"); st.markdown("---"); st.header("국세청에 오신 것을 환영합니다.")
