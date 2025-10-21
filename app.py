@@ -114,15 +114,24 @@ def initialize_game(chosen_lead: TaxManCard, chosen_artifact: Artifact):
 
 def start_player_turn():
     focus = sum(m.focus for m in st.session_state.player_team); st.session_state.player_focus_current=focus
-    if "임향수" in [m.name for m in st.session_state.player_team]: st.session_state.player_focus_current+=1; log_message("✨ [기획 조사] 집중력 +1!", "info")
+    if "임향수" in [m.name for m in st.session_state.player_team]:
+        st.session_state.player_focus_current+=1
+        log_message("✨ [기획 조사] 집중력 +1!", "info")
     for art in st.session_state.player_artifacts:
-        if art.effect["type"]=="on_turn_start" and art.effect["subtype"]=="focus": st.session_state.player_focus_current+=art.effect["value"]; log_message(f"✨ {art.name} 집중력 +{art.effect['value']}!", "info")
+        if art.effect["type"]=="on_turn_start" and art.effect["subtype"]=="focus":
+            st.session_state.player_focus_current+=art.effect["value"]
+            log_message(f"✨ {art.name} 집중력 +{art.effect['value']}!", "info")
     st.session_state.player_focus_max = st.session_state.player_focus_current
-    if "김대지" in [m.name for m in st.session_state.player_team] and st.session_state.team_stats["data"]>=50 and not st.session_state.get('kim_dj_effect_used', False): new=copy.deepcopy(LOGIC_CARD_DB["b_tier_01"]); new.just_created=True; st.session_state.player_hand.append(new); log_message("✨ [부동산 조사] '금융거래 분석' 1장 획득!", "info"); st.session_state.kim_dj_effect_used=True
+    if "김대지" in [m.name for m in st.session_state.player_team] and st.session_state.team_stats["data"]>=50 and not st.session_state.get('kim_dj_effect_used', False):
+        new=copy.deepcopy(LOGIC_CARD_DB["b_tier_01"]); new.just_created=True; st.session_state.player_hand.append(new);
+        log_message("✨ [부동산 조사] '금융거래 분석' 1장 획득!", "info"); st.session_state.kim_dj_effect_used=True
     st.session_state.cost_reduction_active = "전진" in [m.name for m in st.session_state.player_team];
-    if st.session_state.cost_reduction_active: log_message("✨ [실무 지휘] 다음 카드 비용 -1!", "info")
+    if st.session_state.cost_reduction_active:
+        log_message("✨ [실무 지휘] 다음 카드 비용 -1!", "info")
     draw_n = 4 + st.session_state.get('bonus_draw', 0)
-    if st.session_state.get('bonus_draw', 0)>0: log_message(f"✨ {ARTIFACT_DB['plan'].name} 카드 {st.session_state.bonus_draw}장 추가 드로우!", "info"); st.session_state.bonus_draw=0
+    if st.session_state.get('bonus_draw', 0)>0:
+        log_message(f"✨ {ARTIFACT_DB['plan'].name} 카드 {st.session_state.bonus_draw}장 추가 드로우!", "info")
+        st.session_state.bonus_draw=0
     draw_cards(draw_n); check_draw_cards_in_hand(); log_message("--- 플레이어 턴 시작 ---"); st.session_state.turn_first_card_played=True; st.session_state.selected_card_index=None
 
 def draw_cards(num):
@@ -142,7 +151,9 @@ def check_draw_cards_in_hand():
     for idx in indices:
         if idx < len(st.session_state.player_hand):
             card = st.session_state.player_hand.pop(idx); st.session_state.player_discard.append(card); val = card.special_effect.get('value', 0); log_message(f"✨ [{card.name}] 효과! 카드 {val}장 뽑기.", "info")
-            if "조용규" in [m.name for m in st.session_state.player_team] and card.name=="법령 재검토": log_message("✨ [세법 교본] +1장 추가!", "info"); val*=2
+            if "조용규" in [m.name for m in st.session_state.player_team] and card.name=="법령 재검토":
+                log_message("✨ [세법 교본] +1장 추가!", "info")
+                val*=2
             total_draw += val
         else: log_message(f"경고: 드로우 처리 인덱스 오류 (idx: {idx})", "error")
     for card in st.session_state.player_hand:
@@ -162,11 +173,12 @@ def execute_utility_card(card_index):
         else:
             pool=st.session_state.player_deck+st.session_state.player_discard; random.shuffle(pool)
             found = next((c for c in pool if c not in st.session_state.player_hand and c.cost>0 and AttackCategory.COMMON not in c.attack_category and not (c.special_effect and c.special_effect.get("type")=="draw") and any(cat in cats for cat in c.attack_category)), None)
-            if found: log_message(f"📊 [빅데이터 분석] '{found.name}' 발견!", "success"); new=copy.deepcopy(found); new.just_created=True; st.session_state.player_hand.append(new);
-            try: st.session_state.player_deck.remove(found)
-            except ValueError:
-                try: st.session_state.player_discard.remove(found)
-                except ValueError: log_message("경고: 빅데이터 카드 제거 오류", "error")
+            if found:
+                log_message(f"📊 [빅데이터 분석] '{found.name}' 발견!", "success"); new=copy.deepcopy(found); new.just_created=True; st.session_state.player_hand.append(new);
+                try: st.session_state.player_deck.remove(found)
+                except ValueError:
+                    try: st.session_state.player_discard.remove(found)
+                    except ValueError: log_message("경고: 빅데이터 카드 제거 오류", "error")
             else: log_message("ℹ️ [빅데이터 분석] 관련 카드 없음...", "info")
     elif effect == "draw":
         val = card.special_effect.get("value", 0); log_message(f"✨ [{card.name}] 효과! 카드 {val}장 드로우!", "info"); draw_cards(val)
@@ -208,9 +220,14 @@ def execute_attack(card_index, tactic_index): # SyntaxError 수정됨
     card = st.session_state.player_hand[card_index]; cost = calculate_card_cost(card)
     tactic = st.session_state.current_battle_company.tactics[tactic_index]; company = st.session_state.current_battle_company
     is_tax = (TaxType.COMMON in card.tax_type) or (isinstance(tactic.tax_type, list) and any(tt in card.tax_type for tt in tactic.tax_type)) or (tactic.tax_type in card.tax_type)
-    if not is_tax: t_types = [t.value for t in tactic.tax_type] if isinstance(tactic.tax_type, list) else [tactic.tax_type.value]; log_message(f"❌ [세목 불일치!] '{card.name}' -> '{', '.join(t_types)}' (❤️-10)", "error"); st.session_state.team_hp -= 10; st.session_state.player_discard.append(st.session_state.player_hand.pop(card_index)); st.session_state.selected_card_index = None; check_battle_end(); st.rerun(); return
+    if not is_tax:
+        t_types = [t.value for t in tactic.tax_type] if isinstance(tactic.tax_type, list) else [tactic.tax_type.value];
+        log_message(f"❌ [세목 불일치!] '{card.name}' -> '{', '.join(t_types)}' (❤️-10)", "error"); st.session_state.team_hp -= 10;
+        st.session_state.player_discard.append(st.session_state.player_hand.pop(card_index)); st.session_state.selected_card_index = None; check_battle_end(); st.rerun(); return
     is_cat = (AttackCategory.COMMON in card.attack_category) or (tactic.tactic_category in card.attack_category)
-    if not is_cat: log_message(f"🚨 [유형 불일치!] '{card.name}' -> '{tactic.tactic_category.value}' ({tactic.name}) (❤️-5)", "error"); st.session_state.team_hp -= 5; st.session_state.player_discard.append(st.session_state.player_hand.pop(card_index)); st.session_state.selected_card_index = None; check_battle_end(); st.rerun(); return
+    if not is_cat:
+        log_message(f"🚨 [유형 불일치!] '{card.name}' -> '{tactic.tactic_category.value}' ({tactic.name}) (❤️-5)", "error"); st.session_state.team_hp -= 5;
+        st.session_state.player_discard.append(st.session_state.player_hand.pop(card_index)); st.session_state.selected_card_index = None; check_battle_end(); st.rerun(); return
     if st.session_state.player_focus_current < cost: st.toast(f"집중력 부족! ({cost})", icon="🧠"); st.session_state.selected_card_index = None; st.rerun(); return
     st.session_state.player_focus_current -= cost;
     if st.session_state.get('turn_first_card_played', True): st.session_state.turn_first_card_played = False
@@ -243,8 +260,8 @@ def execute_attack(card_index, tactic_index): # SyntaxError 수정됨
     if tactic.exposed_amount >= tactic.total_amount and not tactic.is_cleared:
         tactic.is_cleared = True
         log_message(f"🔥 [{tactic.name}] 혐의 완전 적발! ({tactic.total_amount}억원)", "warning")
-        if "벤츠" in card.text: log_message("💬 [현장] 법인소유 벤츠 발견!", "info")
-        if "압수수색" in card.name: log_message("💬 [현장] 비밀장부 확보!", "info")
+        if "벤츠" in card.text: log_message("💬 [현장] 법인소유 벤츠 발견!", "info") # 분리
+        if "압수수색" in card.name: log_message("💬 [현장] 비밀장부 확보!", "info") # 분리
     # --- ---
     st.session_state.player_discard.append(st.session_state.player_hand.pop(card_index)); st.session_state.selected_card_index = None; check_battle_end(); st.rerun()
 
@@ -261,7 +278,9 @@ def execute_auto_attack():
         is_tax = (TaxType.COMMON in best_card.tax_type) or (isinstance(t.tax_type, list) and any(tt in best_card.tax_type for tt in t.tax_type)) or (t.tax_type in best_card.tax_type)
         is_cat = (AttackCategory.COMMON in best_card.attack_category) or (t.tactic_category in best_card.attack_category)
         if is_tax and is_cat: target_idx = i; break
-    if target_idx != -1: log_message(f"⚡ 자동 공격: '{best_card.name}' -> '{co.tactics[target_idx].name}'!", "info"); execute_attack(best_idx, target_idx)
+    if target_idx != -1:
+        log_message(f"⚡ 자동 공격: '{best_card.name}' -> '{co.tactics[target_idx].name}'!", "info")
+        execute_attack(best_idx, target_idx)
     else: st.toast(f"⚡ '{best_card.name}' 카드로 공격 가능한 혐의가 없습니다.", icon="⚠️")
 
 def end_player_turn():
@@ -269,7 +288,9 @@ def end_player_turn():
     if 'cost_reduction_active' in st.session_state: st.session_state.cost_reduction_active = False
     st.session_state.player_discard.extend(st.session_state.player_hand); st.session_state.player_hand = []; st.session_state.selected_card_index = None
     log_message("--- 기업 턴 시작 ---"); enemy_turn()
-    if not check_battle_end(): start_player_turn(); st.rerun()
+    if not check_battle_end():
+        start_player_turn()
+        st.rerun() # 분리
 
 def enemy_turn():
     co = st.session_state.current_battle_company; act = random.choice(co.defense_actions); min_d, max_d = co.team_hp_damage; dmg = random.randint(min_d, max_d); st.session_state.team_hp -= dmg
@@ -342,7 +363,10 @@ def show_setup_draft_screen():
     st.markdown("---"); st.subheader("1. 팀 리더 선택:"); lead_idx = st.radio("리더", range(len(teams)), format_func=lambda i: f"**{teams[i].name} ({teams[i].grade}급)** | {teams[i].description}\n   └ **{teams[i].ability_name}**: {teams[i].ability_desc}", label_visibility="collapsed")
     st.markdown("---"); st.subheader("2. 시작 조사도구 선택:"); art_idx = st.radio("도구", range(len(arts)), format_func=lambda i: f"**{arts[i].name}** | {arts[i].description}", label_visibility="collapsed")
     st.markdown("---");
-    if st.button("이 구성으로 조사 시작", type="primary", use_container_width=True): initialize_game(teams[lead_idx], arts[art_idx]); del st.session_state.draft_team_choices, st.session_state.draft_artifact_choices; st.rerun()
+    if st.button("이 구성으로 조사 시작", type="primary", use_container_width=True):
+        initialize_game(teams[lead_idx], arts[art_idx])
+        del st.session_state.draft_team_choices, st.session_state.draft_artifact_choices
+        st.rerun()
 
 def show_map_screen():
     if 'current_stage_level' not in st.session_state: st.warning("게임 상태 초기화됨..."); st.session_state.game_state = "MAIN_MENU"; st.rerun(); return
@@ -358,8 +382,11 @@ def show_map_screen():
                 st.markdown("---"); st.markdown("### 📚 실제 사례 기반 교육 정보"); st.markdown(co.real_case_desc)
                 st.markdown("---"); st.markdown("### 📝 주요 탈루 혐의 분석")
                 for t in co.tactics: t_types = [tx.value for tx in t.tax_type] if isinstance(t.tax_type, list) else [t.tax_type.value]; st.markdown(f"**📌 {t.name}** (`{'/'.join(t_types)}`, `{t.method_type.value}`, `{t.tactic_category.value}`)\n> _{t.description}_")
-            if st.button(f"🚨 {co.name} 조사 시작", type="primary", use_container_width=True): start_battle(co); st.rerun()
-    else: st.success("🎉 모든 기업 조사 완료!"); st.balloons(); st.button("🏆 다시 시작", on_click=lambda: st.session_state.update(game_state="MAIN_MENU"))
+            if st.button(f"🚨 {co.name} 조사 시작", type="primary", use_container_width=True):
+                start_battle(co)
+                st.rerun()
+    else:
+        st.success("🎉 모든 기업 조사 완료!"); st.balloons(); st.button("🏆 다시 시작", on_click=lambda: st.session_state.update(game_state="MAIN_MENU"))
 
 def show_battle_screen():
     if not st.session_state.current_battle_company: st.error("오류: 기업 정보 없음..."); st.session_state.game_state = "MAP"; st.rerun(); return
