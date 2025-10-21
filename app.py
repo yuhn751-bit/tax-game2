@@ -5,20 +5,11 @@ from enum import Enum # Enum 사용을 위해 추가
 
 # --- 0. Enum(열거형) 정의 ---
 class TaxType(str, Enum):
-    CORP = "법인세"
-    VAT = "부가세"
-    COMMON = "공통"
-
+    CORP = "법인세"; VAT = "부가세"; COMMON = "공통"
 class AttackCategory(str, Enum):
-    COST = "비용"
-    REVENUE = "수익"
-    CAPITAL = "자본"
-    COMMON = "공통"
-
+    COST = "비용"; REVENUE = "수익"; CAPITAL = "자본"; COMMON = "공통"
 class MethodType(str, Enum):
-    INTENTIONAL = "고의적 누락"
-    ERROR = "단순 오류"
-    CAPITAL_TX = "자본 거래"
+    INTENTIONAL = "고의적 누락"; ERROR = "단순 오류"; CAPITAL_TX = "자본 거래"
 
 # --- 헬퍼 함수: 가독성 개선 ---
 def format_krw(amount_in_millions):
@@ -68,7 +59,7 @@ class Artifact:
         self.name = name; self.description = description; self.effect = effect
 
 # --- 2. 게임 데이터베이스 (DB) ---
-# (이전 코드와 동일 - 캐릭터 정보, 교육 정보 등 업데이트 반영됨)
+# (이전 코드와 동일 - 모든 DB 정의)
 TAX_MAN_DB = {
     "lim": TaxManCard(name="임향수", grade_num=5, description="국세청의 핵심 요직을 두루 거친 '조사통의 대부'. 굵직한 대기업 비자금, 불법 증여 조사를 지휘한 경험이 풍부하다.", cost=0, hp=120, focus=3, analysis=10, persuasion=10, evidence=10, data=10, ability_name="[기획 조사]", ability_desc="전설적인 통찰력. 매 턴 집중력 +1. 팀의 '분석', '데이터' 스탯에 비례해 '비용', '자본' 카드 피해량 증가."),
     "han": TaxManCard(name="한중히", grade_num=6, description="국제조세 분야에서 잔뼈가 굵은 전문가. OECD 파견 경험으로 국제 공조 및 BEPS 프로젝트에 대한 이해가 깊다.", cost=0, hp=80, focus=2, analysis=9, persuasion=6, evidence=8, data=9, ability_name="[역외탈세 추적]", ability_desc="'외국계' 기업 또는 '자본 거래' 혐의 공격 시, 최종 피해량 +30%."),
@@ -221,182 +212,100 @@ COMPANY_DB = [
     ),
 ]
 
+# --- [수정됨] 모든 함수 정의를 DB 정의 이후로 이동 ---
 
 # --- 3. 게임 상태 초기화 및 관리 ---
-# (이전 코드와 동일)
 def initialize_game(chosen_lead: TaxManCard, chosen_artifact: Artifact):
-    """
-    (이전 코드와 동일) 드래프트에서 선택된 리더/유물로 게임을 초기화합니다.
-    (이전 코드와 동일) 팀원 수를 3명으로 고정하고, 중복 없이 랜덤 구성합니다.
-    """
-
     seed = st.session_state.get('seed', 0)
-    if seed != 0:
-        random.seed(seed)
-        st.toast(f"ℹ️ RNG 시드 {seed}로 고정됨.")
-    else:
-        random.seed()
+    if seed != 0: random.seed(seed); st.toast(f"ℹ️ RNG 시드 {seed}로 고정됨.")
+    else: random.seed()
 
-    team_members = []
-    team_members.append(chosen_lead)
-
+    team_members = [chosen_lead]
     all_members = list(TAX_MAN_DB.values())
     remaining_pool = [m for m in all_members if m.name != chosen_lead.name]
-
     num_to_sample = min(2, len(remaining_pool))
-    if num_to_sample > 0:
-        additional_members = random.sample(remaining_pool, num_to_sample)
-        team_members.extend(additional_members)
-
+    if num_to_sample > 0: team_members.extend(random.sample(remaining_pool, num_to_sample))
     st.session_state.player_team = team_members
 
     start_deck = [LOGIC_CARD_DB["basic_01"]] * 4 + [LOGIC_CARD_DB["basic_02"]] * 3 + [LOGIC_CARD_DB["b_tier_04"]] * 3 + [LOGIC_CARD_DB["c_tier_03"]] * 2 + [LOGIC_CARD_DB["c_tier_02"]] * 2
     st.session_state.player_deck = random.sample(start_deck, len(start_deck))
-    st.session_state.player_hand = []
-    st.session_state.player_discard = []
-
+    st.session_state.player_hand = []; st.session_state.player_discard = []
     st.session_state.player_artifacts = [chosen_artifact]
-
-    st.session_state.team_max_hp = sum(member.hp for member in team_members)
-    st.session_state.team_hp = st.session_state.team_max_hp
-    st.session_state.team_shield = 0
-
-    st.session_state.player_focus_max = sum(member.focus for member in team_members)
+    st.session_state.team_max_hp = sum(m.hp for m in team_members); st.session_state.team_hp = st.session_state.team_max_hp
+    st.session_state.team_shield = 0; st.session_state.player_focus_max = sum(m.focus for m in team_members)
     st.session_state.player_focus_current = st.session_state.player_focus_max
-
-    st.session_state.team_stats = {
-        "analysis": sum(m.analysis for m in team_members),
-        "persuasion": sum(m.persuasion for m in team_members),
-        "evidence": sum(m.evidence for m in team_members),
-        "data": sum(m.data for m in team_members)
-    }
+    st.session_state.team_stats = { "analysis": sum(m.analysis for m in team_members), "persuasion": sum(m.persuasion for m in team_members), "evidence": sum(m.evidence for m in team_members), "data": sum(m.data for m in team_members) }
     for artifact in st.session_state.player_artifacts:
         if artifact.effect["type"] == "on_battle_start":
-            if artifact.effect["subtype"] == "stat_evidence":
-                st.session_state.team_stats["evidence"] += artifact.effect["value"]
-            elif artifact.effect["subtype"] == "stat_persuasion":
-                st.session_state.team_stats["persuasion"] += artifact.effect["value"]
-            elif artifact.effect["subtype"] == "stat_analysis":
-                st.session_state.team_stats["analysis"] += artifact.effect["value"]
+            if artifact.effect["subtype"] == "stat_evidence": st.session_state.team_stats["evidence"] += artifact.effect["value"]
+            elif artifact.effect["subtype"] == "stat_persuasion": st.session_state.team_stats["persuasion"] += artifact.effect["value"]
+            elif artifact.effect["subtype"] == "stat_analysis": st.session_state.team_stats["analysis"] += artifact.effect["value"]
 
-    st.session_state.current_battle_company = None
-    st.session_state.battle_log = [] # 로그 기록 초기화
-    st.session_state.selected_card_index = None
-    st.session_state.bonus_draw = 0
-
+    st.session_state.current_battle_company = None; st.session_state.battle_log = []
+    st.session_state.selected_card_index = None; st.session_state.bonus_draw = 0
     st.session_state.company_order = random.sample(COMPANY_DB, len(COMPANY_DB))
-    st.session_state.game_state = "MAP"
-
-    st.session_state.current_stage_level = 0
+    st.session_state.game_state = "MAP"; st.session_state.current_stage_level = 0
     st.session_state.total_collected_tax = 0
 
 # --- 4. 게임 로직 함수 ---
-
-# --- log_message 함수 정의 (가장 먼저) ---
 def log_message(message, level="normal"):
-    """ 로그 메시지를 st.session_state.battle_log에 추가합니다. """
-    if 'battle_log' not in st.session_state:
-        st.session_state.battle_log = []
-    elif st.session_state.battle_log is None:
-        st.session_state.battle_log = []
-
+    if 'battle_log' not in st.session_state or st.session_state.battle_log is None: st.session_state.battle_log = []
     color_map = {"normal": "", "success": "green", "warning": "orange", "error": "red", "info": "blue"}
-    if level != "normal":
-        message = f":{color_map[level]}[{message}]"
-
+    if level != "normal": message = f":{color_map[level]}[{message}]"
     st.session_state.battle_log.insert(0, message)
-    if len(st.session_state.battle_log) > 30:
-        st.session_state.battle_log.pop()
+    if len(st.session_state.battle_log) > 30: st.session_state.battle_log.pop()
 
-# (이하 로직 함수들은 이전 버전과 거의 동일)
-# ... (start_player_turn, draw_cards, check_draw_cards_in_hand 등등) ...
-# ... (start_battle 함수 포함) ...
-# ... (go_to_next_stage 등 나머지 로직 함수들) ...
+# ... (start_player_turn, draw_cards, check_draw_cards_in_hand 등 나머지 모든 게임 로직 함수 정의) ...
+# ... (start_battle 함수 포함 - 내부 log_message 호출 문제 없음) ...
+# ... (go_to_next_stage 등 나머지 모든 게임 로직 함수 정의) ...
 
 # --- 5. UI 화면 함수 ---
-# (이전 코드와 동일 - 이미지 교체, 드래프트 후보 수 등 반영됨)
-# ... (show_main_menu, show_setup_draft_screen 등 UI 함수들) ...
-# ... (show_map_screen, show_battle_screen 등 UI 함수들) ...
-# ... (show_reward_screen, show_reward_remove_screen, show_game_over_screen UI 함수들) ...
-# ... (show_player_status_sidebar UI 함수) ...
+# (show_main_menu, show_setup_draft_screen 등 모든 UI 함수 정의)
+# ... (show_map_screen, show_battle_screen 등 모든 UI 함수 정의) ...
+# ... (show_reward_screen, show_reward_remove_screen, show_game_over_screen UI 함수 정의) ...
+# ... (show_player_status_sidebar UI 함수 정의) ...
 
-# --- 6. 메인 실행 로직 ---
-# --- [수정됨] main (안전성 강화) ---
+# --- [수정됨] main 함수 정의 (스크립트 하단으로 이동) ---
 def main():
     st.set_page_config(page_title="세무조사 덱빌딩", layout="wide", initial_sidebar_state="expanded")
 
-    # 세션 상태 초기화 확인
-    if 'game_state' not in st.session_state:
-        st.session_state.game_state = "MAIN_MENU"
+    if 'game_state' not in st.session_state: st.session_state.game_state = "MAIN_MENU"
+    current_game_state = st.session_state.get('game_state', "MAIN_MENU")
 
-    current_game_state = st.session_state.get('game_state', "MAIN_MENU") # 안전하게 상태 가져오기
-
-    # (개선) 상태 유효성 검사 강화
     is_state_valid = True
     required_keys = []
-
-    # 각 상태별 필수 키 정의
-    if current_game_state == "GAME_SETUP_DRAFT":
-        required_keys = ['draft_team_choices', 'draft_artifact_choices']
+    if current_game_state == "GAME_SETUP_DRAFT": required_keys = ['draft_team_choices', 'draft_artifact_choices']
     elif current_game_state in ["MAP", "BATTLE", "REWARD", "REWARD_REMOVE"]:
-        # 기본 게임 진행 키 + battle_log 추가 (log_message에서 생성 보장)
         required_keys = ['player_team', 'player_deck', 'player_discard', 'player_hand', 'current_stage_level', 'player_artifacts', 'team_stats', 'company_order', 'battle_log']
-        if current_game_state == "BATTLE" or current_game_state == "REWARD": # 전투/보상 시
-            required_keys.append('current_battle_company')
-    elif current_game_state == "GAME_OVER":
-         required_keys = ['total_collected_tax', 'current_stage_level']
+        if current_game_state in ["BATTLE", "REWARD"]: required_keys.append('current_battle_company')
+    elif current_game_state == "GAME_OVER": required_keys = ['total_collected_tax', 'current_stage_level']
 
-    # 필요한 키가 st.session_state에 모두 존재하는지 확인
     missing_keys = [key for key in required_keys if key not in st.session_state]
-    if missing_keys:
-        is_state_valid = False
+    if missing_keys: is_state_valid = False
 
-    # 상태가 유효하지 않으면 메인 메뉴로 리셋
     if not is_state_valid and current_game_state != "MAIN_MENU":
         st.toast(f"⚠️ 세션 상태 오류 ({', '.join(missing_keys)} 누락). 게임을 초기화하고 메인 메뉴로 돌아갑니다.")
-        # 필수 키 외 불필요한 키 정리 (선택적)
         keys_to_delete = [k for k in st.session_state.keys() if k != 'game_state']
         for key in keys_to_delete:
             if key in st.session_state:
-                try:
-                    del st.session_state[key]
-                except KeyError:
-                    pass
+                try: del st.session_state[key]
+                except KeyError: pass
         st.session_state.game_state = "MAIN_MENU"
-        st.rerun()
-        return
+        st.rerun(); return
 
-    # 상태에 따른 화면 표시 (상태가 유효할 때만)
-    sidebar_needed = False # 사이드바 표시 여부 플래그
+    sidebar_needed = False
+    if current_game_state == "MAIN_MENU": show_main_menu()
+    elif current_game_state == "GAME_SETUP_DRAFT": show_setup_draft_screen()
+    elif current_game_state == "MAP": show_map_screen(); sidebar_needed = True
+    elif current_game_state == "BATTLE": show_battle_screen(); sidebar_needed = True
+    elif current_game_state == "REWARD": show_reward_screen(); sidebar_needed = True
+    elif current_game_state == "REWARD_REMOVE": show_reward_remove_screen(); sidebar_needed = True
+    elif current_game_state == "GAME_OVER": show_game_over_screen()
 
-    if current_game_state == "MAIN_MENU":
-        show_main_menu()
-    elif current_game_state == "GAME_SETUP_DRAFT":
-        show_setup_draft_screen()
-    elif current_game_state == "MAP":
-        show_map_screen()
-        sidebar_needed = True
-    elif current_game_state == "BATTLE":
-        show_battle_screen()
-        sidebar_needed = True
-    elif current_game_state == "REWARD":
-        show_reward_screen()
-        sidebar_needed = True
-    elif current_game_state == "REWARD_REMOVE":
-        show_reward_remove_screen()
-        sidebar_needed = True
-    elif current_game_state == "GAME_OVER":
-        show_game_over_screen()
-
-    # 사이드바 표시 (필요한 상태이고, 필수 키가 있을 때만)
-    sidebar_display_keys = ['player_team', 'team_stats', 'player_artifacts', 'player_deck', 'player_discard', 'player_hand', 'team_hp', 'team_max_hp', 'total_collected_tax'] # 사이드바 표시에 필요한 키 확장
+    sidebar_display_keys = ['player_team', 'team_stats', 'player_artifacts', 'player_deck', 'player_discard', 'player_hand', 'team_hp', 'team_max_hp', 'total_collected_tax']
     if sidebar_needed and all(key in st.session_state for key in sidebar_display_keys):
-        # 전투 중일 경우 추가 키 확인
-        if current_game_state == "BATTLE" and ('player_focus_current' not in st.session_state or 'player_focus_max' not in st.session_state or 'team_shield' not in st.session_state):
-             pass # 전투 중인데 필요한 키가 없으면 사이드바 표시 안 함 (오류 방지)
-        else:
-             show_player_status_sidebar()
-
+        if current_game_state == "BATTLE" and ('player_focus_current' not in st.session_state or 'player_focus_max' not in st.session_state or 'team_shield' not in st.session_state): pass
+        else: show_player_status_sidebar()
 
 # --- [수정됨] 스크립트 실행 지점 (가장 마지막으로 이동) ---
 if __name__ == "__main__":
