@@ -224,7 +224,71 @@ COMPANY_DB = [
 
 # --- 3. 게임 상태 초기화 및 관리 ---
 # (이전 코드와 동일)
-# ... initialize_game ...
+def initialize_game(chosen_lead: TaxManCard, chosen_artifact: Artifact):
+    """
+    (이전 코드와 동일) 드래프트에서 선택된 리더/유물로 게임을 초기화합니다.
+    (이전 코드와 동일) 팀원 수를 3명으로 고정하고, 중복 없이 랜덤 구성합니다.
+    """
+
+    seed = st.session_state.get('seed', 0)
+    if seed != 0:
+        random.seed(seed)
+        st.toast(f"ℹ️ RNG 시드 {seed}로 고정됨.")
+    else:
+        random.seed()
+
+    team_members = []
+    team_members.append(chosen_lead)
+
+    all_members = list(TAX_MAN_DB.values())
+    remaining_pool = [m for m in all_members if m.name != chosen_lead.name]
+
+    num_to_sample = min(2, len(remaining_pool))
+    if num_to_sample > 0:
+        additional_members = random.sample(remaining_pool, num_to_sample)
+        team_members.extend(additional_members)
+
+    st.session_state.player_team = team_members
+
+    start_deck = [LOGIC_CARD_DB["basic_01"]] * 4 + [LOGIC_CARD_DB["basic_02"]] * 3 + [LOGIC_CARD_DB["b_tier_04"]] * 3 + [LOGIC_CARD_DB["c_tier_03"]] * 2 + [LOGIC_CARD_DB["c_tier_02"]] * 2
+    st.session_state.player_deck = random.sample(start_deck, len(start_deck))
+    st.session_state.player_hand = []
+    st.session_state.player_discard = []
+
+    st.session_state.player_artifacts = [chosen_artifact]
+
+    st.session_state.team_max_hp = sum(member.hp for member in team_members)
+    st.session_state.team_hp = st.session_state.team_max_hp
+    st.session_state.team_shield = 0
+
+    st.session_state.player_focus_max = sum(member.focus for member in team_members)
+    st.session_state.player_focus_current = st.session_state.player_focus_max
+
+    st.session_state.team_stats = {
+        "analysis": sum(m.analysis for m in team_members),
+        "persuasion": sum(m.persuasion for m in team_members),
+        "evidence": sum(m.evidence for m in team_members),
+        "data": sum(m.data for m in team_members)
+    }
+    for artifact in st.session_state.player_artifacts:
+        if artifact.effect["type"] == "on_battle_start":
+            if artifact.effect["subtype"] == "stat_evidence":
+                st.session_state.team_stats["evidence"] += artifact.effect["value"]
+            elif artifact.effect["subtype"] == "stat_persuasion":
+                st.session_state.team_stats["persuasion"] += artifact.effect["value"]
+            elif artifact.effect["subtype"] == "stat_analysis":
+                st.session_state.team_stats["analysis"] += artifact.effect["value"]
+
+    st.session_state.current_battle_company = None
+    st.session_state.battle_log = [] # 로그 기록 초기화
+    st.session_state.selected_card_index = None
+    st.session_state.bonus_draw = 0
+
+    st.session_state.company_order = random.sample(COMPANY_DB, len(COMPANY_DB))
+    st.session_state.game_state = "MAP"
+
+    st.session_state.current_stage_level = 0
+    st.session_state.total_collected_tax = 0
 
 # --- 4. 게임 로직 함수 ---
 
@@ -250,7 +314,7 @@ def log_message(message, level="normal"):
 # ... (go_to_next_stage 등 나머지 로직 함수들) ...
 
 # --- 5. UI 화면 함수 ---
-# (이전 코드와 동일)
+# (이전 코드와 동일 - 이미지 교체, 드래프트 후보 수 등 반영됨)
 # ... (show_main_menu, show_setup_draft_screen 등 UI 함수들) ...
 # ... (show_map_screen, show_battle_screen 등 UI 함수들) ...
 # ... (show_reward_screen, show_reward_remove_screen, show_game_over_screen UI 함수들) ...
@@ -275,7 +339,7 @@ def main():
     if current_game_state == "GAME_SETUP_DRAFT":
         required_keys = ['draft_team_choices', 'draft_artifact_choices']
     elif current_game_state in ["MAP", "BATTLE", "REWARD", "REWARD_REMOVE"]:
-        # 기본 게임 진행 키 + battle_log 추가
+        # 기본 게임 진행 키 + battle_log 추가 (log_message에서 생성 보장)
         required_keys = ['player_team', 'player_deck', 'player_discard', 'player_hand', 'current_stage_level', 'player_artifacts', 'team_stats', 'company_order', 'battle_log']
         if current_game_state == "BATTLE" or current_game_state == "REWARD": # 전투/보상 시
             required_keys.append('current_battle_company')
@@ -285,13 +349,11 @@ def main():
     # 필요한 키가 st.session_state에 모두 존재하는지 확인
     missing_keys = [key for key in required_keys if key not in st.session_state]
     if missing_keys:
-        # st.warning(f"상태 오류 감지: 누락된 키 - {missing_keys}") # 디버깅용
         is_state_valid = False
-
 
     # 상태가 유효하지 않으면 메인 메뉴로 리셋
     if not is_state_valid and current_game_state != "MAIN_MENU":
-        st.toast("⚠️ 세션 상태 오류 발생. 게임을 초기화하고 메인 메뉴로 돌아갑니다.")
+        st.toast(f"⚠️ 세션 상태 오류 ({', '.join(missing_keys)} 누락). 게임을 초기화하고 메인 메뉴로 돌아갑니다.")
         # 필수 키 외 불필요한 키 정리 (선택적)
         keys_to_delete = [k for k in st.session_state.keys() if k != 'game_state']
         for key in keys_to_delete:
