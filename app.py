@@ -260,10 +260,11 @@ def execute_attack(card_index, tactic_index): # SyntaxError 수정됨
     if tactic.exposed_amount >= tactic.total_amount and not tactic.is_cleared:
         tactic.is_cleared = True
         log_message(f"🔥 [{tactic.name}] 혐의 완전 적발! ({tactic.total_amount}억원)", "warning")
-        if "벤츠" in card.text: log_message("💬 [현장] 법인소유 벤츠 발견!", "info") # 분리
-        if "압수수색" in card.name: log_message("💬 [현장] 비밀장부 확보!", "info") # 분리
+        if "벤츠" in card.text: log_message("💬 [현장] 법인소유 벤츠 발견!", "info")
+        if "압수수색" in card.name: log_message("💬 [현장] 비밀장부 확보!", "info")
     # --- ---
-    st.session_state.player_discard.append(st.session_state.player_hand.pop(card_index)); st.session_state.selected_card_index = None; check_battle_end(); st.rerun()
+    st.session_state.player_discard.append(st.session_state.player_hand.pop(card_index)); st.session_state.selected_card_index = None;
+    check_battle_end(); st.rerun()
 
 def execute_auto_attack():
     best_card = None; best_idx = -1; max_dmg = -1
@@ -288,9 +289,10 @@ def end_player_turn():
     if 'cost_reduction_active' in st.session_state: st.session_state.cost_reduction_active = False
     st.session_state.player_discard.extend(st.session_state.player_hand); st.session_state.player_hand = []; st.session_state.selected_card_index = None
     log_message("--- 기업 턴 시작 ---"); enemy_turn()
+    # 수정: if 블록 안의 st.rerun() 호출 분리
     if not check_battle_end():
         start_player_turn()
-        st.rerun() # 분리
+        st.rerun() # 여기가 수정되었습니다.
 
 def enemy_turn():
     co = st.session_state.current_battle_company; act = random.choice(co.defense_actions); min_d, max_d = co.team_hp_damage; dmg = random.randint(min_d, max_d); st.session_state.team_hp -= dmg
@@ -393,7 +395,7 @@ def show_battle_screen():
     co = st.session_state.current_battle_company; st.title(f"⚔️ {co.name} 조사 중..."); st.markdown("---")
     col_co, col_log, col_hand = st.columns([1.6, 2.0, 1.4])
     with col_co:
-        st.subheader(f"🏢 {co.name} ({co.size})"); st.progress(min(1.0, co.current_collected_tax/co.tax_target), text=f"💰 목표 세액: {co.current_collected_tax:,}/{co.tax_target:,} (억원)"); st.markdown("---"); st.subheader("🧾 탈루 혐의 목록")
+        st.subheader(f"🏢 {co.name} ({co.size})"); st.progress(min(1.0, co.current_collected_tax/co.tax_target if co.tax_target > 0 else 1.0), text=f"💰 목표 세액: {co.current_collected_tax:,}/{co.tax_target:,} (억원)"); st.markdown("---"); st.subheader("🧾 탈루 혐의 목록") # Prevent division by zero
         is_sel = st.session_state.get("selected_card_index") is not None
         if is_sel: st.info(f"**'{st.session_state.player_hand[st.session_state.selected_card_index].name}'** 카드로 공격할 혐의 선택:")
         if not co.tactics: st.write("(모든 혐의 적발!)")
@@ -403,7 +405,7 @@ def show_battle_screen():
                 cleared = t.exposed_amount >= t.total_amount
                 with st.container(border=True):
                     t_types = [tx.value for tx in t.tax_type] if isinstance(t.tax_type, list) else [t.tax_type.value]; st.markdown(f"**{t.name}** (`{'/'.join(t_types)}`/`{t.method_type.value}`/`{t.tactic_category.value}`)\n*{t.description}*")
-                    prog_txt = f"✅ 완료: {t.total_amount:,}억" if cleared else f"적발: {t.exposed_amount:,}/{t.total_amount:,}억"; st.progress(1.0 if cleared else min(1.0, t.exposed_amount/t.total_amount), text=prog_txt)
+                    prog_txt = f"✅ 완료: {t.total_amount:,}억" if cleared else f"적발: {t.exposed_amount:,}/{t.total_amount:,}억"; st.progress(1.0 if cleared else (min(1.0, t.exposed_amount/t.total_amount) if t.total_amount > 0 else 1.0), text=prog_txt) # Prevent division by zero
                     if is_sel and not cleared:
                         card = st.session_state.player_hand[st.session_state.selected_card_index]
                         is_tax = (TaxType.COMMON in card.tax_type) or (isinstance(t.tax_type, list) and any(tt in card.tax_type for tt in t.tax_type)) or (t.tax_type in card.tax_type)
@@ -425,6 +427,7 @@ def show_battle_screen():
         st.subheader(f"🃏 손패 ({len(st.session_state.player_hand)})")
         if not st.session_state.player_hand: st.write("(손패 없음)")
         for i, card in enumerate(st.session_state.player_hand):
+            # 수정: list index out of range 방지
             if i >= len(st.session_state.player_hand): continue
             cost = calculate_card_cost(card); afford = st.session_state.player_focus_current >= cost; color = "blue" if afford else "red"; selected = (st.session_state.get("selected_card_index") == i)
             with st.container(border=True):
@@ -437,7 +440,7 @@ def show_battle_screen():
                 disabled = not afford; help = f"집중력 부족! ({cost})" if not afford else None
                 if st.button(btn_label, key=f"play_{i}", use_container_width=True, disabled=disabled, help=help): select_card_to_play(i)
 
-def show_reward_screen():
+def show_reward_screen(): # SyntaxError 수정됨
     st.header("🎉 조사 승리!"); st.balloons(); co = st.session_state.current_battle_company; st.success(f"**{co.name}** 조사 완료. 총 {co.current_collected_tax:,}억원 추징."); st.markdown("---")
     t1, t2, t3 = st.tabs(["🃏 카드 획득 (택1)", "❤️ 팀 정비", "🗑️ 덱 정비"])
     with t1:
@@ -445,9 +448,19 @@ def show_reward_screen():
         if 'reward_cards' not in st.session_state or not st.session_state.reward_cards:
             pool = [c for c in LOGIC_CARD_DB.values() if not (c.cost == 0 and c.special_effect and c.special_effect.get("type") == "draw")]
             opts = []; has_cap = any(t.method_type == MethodType.CAPITAL_TX for t in co.tactics)
-            if has_cap: cap = [c for c in pool if AttackCategory.CAPITAL in c.attack_category and c not in opts]; if cap: opts.append(random.choice(cap)); st.toast("ℹ️ [보상 가중치] '자본' 카드 1장 포함!")
-            remain = [c for c in pool if c not in opts]; num_add = 3 - len(opts); opts.extend(random.sample(remain, min(len(remain), num_add)))
-            while len(opts) < 3 and len(pool) > 0: add = random.choice(pool); if add not in opts or len(pool) < 3: opts.append(add)
+            # --- SyntaxError 수정된 부분 ---
+            if has_cap:
+                cap_cards = [c for c in pool if AttackCategory.CAPITAL in c.attack_category and c not in opts]
+                if cap_cards:
+                    opts.append(random.choice(cap_cards))
+                    st.toast("ℹ️ [보상 가중치] '자본' 카드 1장 포함!")
+            # --- ---
+            remain = [c for c in pool if c not in opts]; num_add = 3 - len(opts)
+            if len(remain) < num_add: opts.extend(random.sample(remain, len(remain)))
+            else: opts.extend(random.sample(remain, num_add))
+            while len(opts) < 3 and len(pool) > 0:
+                 add = random.choice(pool)
+                 if add not in opts or len(pool) < 3: opts.append(add)
             st.session_state.reward_cards = opts
         cols = st.columns(len(st.session_state.reward_cards))
         for i, card in enumerate(st.session_state.reward_cards):
@@ -457,15 +470,24 @@ def show_reward_screen():
                     if card.base_damage > 0: st.info(f"**기본 적출액:** {card.base_damage} 억원")
                     elif card.special_effect and card.special_effect.get("type") == "draw": st.info(f"**드로우:** +{card.special_effect.get('value', 0)}")
                     if card.special_bonus: st.warning(f"**보너스:** {card.special_bonus.get('bonus_desc')}")
-                    if st.button(f"선택: {card.name}", key=f"reward_{i}", use_container_width=True, type="primary"): go_to_next_stage(add_card=card)
-    with t2: st.subheader("❤️ 팀 체력 회복"); st.markdown(f"현재: {st.session_state.team_hp}/{st.session_state.team_max_hp}"); heal=int(st.session_state.team_max_hp*0.3); st.button(f"팀 정비 (+{heal} 회복)", on_click=go_to_next_stage, kwargs={'heal_amount': heal}, use_container_width=True)
-    with t3: st.subheader("🗑️ 덱에서 기본 카드 1장 제거"); st.markdown("덱 압축으로 좋은 카드 뽑을 확률 증가."); st.info("제거 대상: '단순 자료 대사', '기본 경비 적정성 검토', '단순 경비 처리 오류 지적'"); st.button("기본 카드 제거하러 가기", on_click=lambda: st.session_state.update(game_state="REWARD_REMOVE"), use_container_width=True)
+                    if st.button(f"선택: {card.name}", key=f"reward_{i}", use_container_width=True, type="primary"):
+                        go_to_next_stage(add_card=card) # 분리
+
+    with t2:
+        st.subheader("❤️ 팀 체력 회복"); st.markdown(f"현재: {st.session_state.team_hp}/{st.session_state.team_max_hp}"); heal=int(st.session_state.team_max_hp*0.3);
+        st.button(f"팀 정비 (+{heal} 회복)", on_click=go_to_next_stage, kwargs={'heal_amount': heal}, use_container_width=True) # 분리
+
+    with t3:
+        st.subheader("🗑️ 덱에서 기본 카드 1장 제거"); st.markdown("덱 압축으로 좋은 카드 뽑을 확률 증가.");
+        st.info("제거 대상: '단순 자료 대사', '기본 경비 적정성 검토', '단순 경비 처리 오류 지적'");
+        st.button("기본 카드 제거하러 가기", on_click=lambda: st.session_state.update(game_state="REWARD_REMOVE"), use_container_width=True) # 분리
 
 def show_reward_remove_screen():
     st.header("🗑️ 덱 정비 (카드 제거)"); st.markdown("제거할 기본 카드 1장 선택:")
     deck = st.session_state.player_deck + st.session_state.player_discard; basics = ["단순 자료 대사", "기본 경비 적정성 검토", "단순 경비 처리 오류 지적"]
     removable = {name: card for card in deck if card.name in basics and card.name not in locals().get('removable', {})}
-    if not removable: st.warning("제거 가능한 기본 카드 없음."); st.button("맵으로 돌아가기", on_click=go_to_next_stage); return
+    if not removable:
+        st.warning("제거 가능한 기본 카드 없음."); st.button("맵으로 돌아가기", on_click=go_to_next_stage); return # 분리
     cols = st.columns(len(removable))
     for i, (name, card) in enumerate(removable.items()):
         with cols[i]:
@@ -477,7 +499,10 @@ def show_reward_remove_screen():
                     except (StopIteration, ValueError):
                         try: st.session_state.player_discard.remove(next(c for c in st.session_state.player_discard if c.name == name)); msg = "버린 덱"; found = True
                         except (StopIteration, ValueError): st.error("오류: 카드 제거 실패.")
-                    if found: st.toast(f"{msg}에서 [{name}] 1장 제거!", icon="🗑️"); go_to_next_stage(); return
+                    if found:
+                        st.toast(f"{msg}에서 [{name}] 1장 제거!", icon="🗑️") # 분리
+                        go_to_next_stage()
+                        return # 분리
     st.markdown("---"); st.button("제거 취소 (맵으로)", on_click=go_to_next_stage, type="secondary")
 
 def show_game_over_screen():
@@ -500,16 +525,25 @@ def show_player_status_sidebar():
         with st.expander("덱 구성 보기"):
             deck = st.session_state.player_deck + st.session_state.player_discard + st.session_state.player_hand; counts = {};
             for card in deck: counts[card.name] = counts.get(card.name, 0) + 1
-            for name in sorted(counts.keys()): st.write(f"- {name} x {counts[name]}")
+            # 수정: list comprehension -> for loop
+            for name in sorted(counts.keys()):
+                st.write(f"- {name} x {counts[name]}")
         if st.session_state.game_state == "BATTLE":
             with st.expander("🗑️ 버린 덱 보기"):
                 discard_counts = {name: 0 for name in counts};
                 for card in st.session_state.player_discard: discard_counts[card.name] = discard_counts.get(card.name, 0) + 1
                 if not any(v > 0 for v in discard_counts.values()): st.write("(버린 카드 없음)")
-                else: [st.write(f"- {n} x {c}") for n, c in sorted(discard_counts.items()) if c > 0]
+                # 수정: list comprehension -> for loop
+                else:
+                    for n, c in sorted(discard_counts.items()):
+                        if c > 0:
+                            st.write(f"- {n} x {c}")
         st.markdown("---"); st.subheader("🧰 보유 도구")
         if not st.session_state.player_artifacts: st.write("(없음)")
-        else: [st.success(f"- {art.name}: {art.description}") for art in st.session_state.player_artifacts]
+        # 수정: list comprehension -> for loop
+        else:
+            for art in st.session_state.player_artifacts:
+                st.success(f"- {art.name}: {art.description}")
         st.markdown("---"); st.button("게임 포기 (메인 메뉴)", on_click=lambda: st.session_state.update(game_state="MAIN_MENU"), use_container_width=True)
 
 # --- 6. 메인 실행 로직 ---
@@ -517,9 +551,13 @@ def main():
     st.set_page_config(page_title="세무조사 덱빌딩", layout="wide", initial_sidebar_state="expanded")
     if 'game_state' not in st.session_state: st.session_state.game_state = "MAIN_MENU"
     running = ["MAP", "BATTLE", "REWARD", "REWARD_REMOVE"]
-    if st.session_state.game_state in running and 'player_team' not in st.session_state: st.toast("⚠️ 세션 만료, 메인 메뉴로."); st.session_state.game_state = "MAIN_MENU"; st.rerun(); return
+    if st.session_state.game_state in running and 'player_team' not in st.session_state:
+        st.toast("⚠️ 세션 만료, 메인 메뉴로.")
+        st.session_state.game_state = "MAIN_MENU"; st.rerun(); return # 분리
     pages = { "MAIN_MENU": show_main_menu, "GAME_SETUP_DRAFT": show_setup_draft_screen, "MAP": show_map_screen, "BATTLE": show_battle_screen, "REWARD": show_reward_screen, "REWARD_REMOVE": show_reward_remove_screen, "GAME_OVER": show_game_over_screen }
     pages[st.session_state.game_state]()
-    if st.session_state.game_state not in ["MAIN_MENU", "GAME_OVER", "GAME_SETUP_DRAFT"] and 'player_team' in st.session_state: show_player_status_sidebar()
+    if st.session_state.game_state not in ["MAIN_MENU", "GAME_OVER", "GAME_SETUP_DRAFT"] and 'player_team' in st.session_state:
+        show_player_status_sidebar() # 분리
 
-if __name__ == "__main__": main()
+if __name__ == "__main__":
+    main() # 분리
