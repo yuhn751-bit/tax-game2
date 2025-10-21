@@ -243,8 +243,10 @@ def execute_attack(card_index, tactic_index): # SyntaxError 수정됨
     if tactic.exposed_amount >= tactic.total_amount and not tactic.is_cleared:
         tactic.is_cleared = True
         log_message(f"🔥 [{tactic.name}] 혐의 완전 적발! ({tactic.total_amount}억원)", "warning")
-        if "벤츠" in card.text: log_message("💬 [현장] 법인소유 벤츠 발견!", "info")
-        if "압수수색" in card.name: log_message("💬 [현장] 비밀장부 확보!", "info")
+        if "벤츠" in card.text:
+            log_message("💬 [현장] 법인소유 벤츠 발견!", "info")
+        if "압수수색" in card.name:
+            log_message("💬 [현장] 비밀장부 확보!", "info")
     # --- ---
     st.session_state.player_discard.append(st.session_state.player_hand.pop(card_index)); st.session_state.selected_card_index = None; check_battle_end(); st.rerun()
 
@@ -275,10 +277,21 @@ def enemy_turn():
     co = st.session_state.current_battle_company; act = random.choice(co.defense_actions); min_d, max_d = co.team_hp_damage; dmg = random.randint(min_d, max_d); st.session_state.team_hp -= dmg
     prefix = "◀️ [기업]" if not (co.size in ["대기업", "외국계"] and "로펌" in act) else "◀️ [로펌]"; log_message(f"{prefix} {act} (팀 사기 저하 ❤️-{dmg}!)", "error")
 
-def check_battle_end():
-    co = st.session_state.current_battle_company
-    if co.current_collected_tax >= co.tax_target: bonus = co.current_collected_tax - co.tax_target; log_message(f"🎉 [조사 승리] 목표 {co.tax_target:,}억원 달성! (초과 {bonus:,}억원)", "success"); st.session_state.total_collected_tax += co.current_collected_tax; st.session_state.game_state = "REWARD"; if st.session_state.player_discard: st.toast(f"승리! \"{st.session_state.player_discard[-1].text}\"", icon="🎉"); return True
-    if st.session_state.team_hp <= 0: st.session_state.team_hp = 0; log_message("‼️ [조사 중단] 팀 체력 소진...", "error"); st.session_state.game_state = "GAME_OVER"; return True
+def check_battle_end(): # SyntaxError 수정됨
+    company = st.session_state.current_battle_company
+    if company.current_collected_tax >= company.tax_target:
+        bonus = company.current_collected_tax - company.tax_target
+        log_message(f"🎉 [조사 승리] 목표 {company.tax_target:,}억원 달성! (초과 {bonus:,}억원)", "success")
+        st.session_state.total_collected_tax += company.current_collected_tax
+        st.session_state.game_state = "REWARD"
+        if st.session_state.player_discard:
+            st.toast(f"승리! \"{st.session_state.player_discard[-1].text}\"", icon="🎉")
+        return True
+    if st.session_state.team_hp <= 0:
+        st.session_state.team_hp = 0
+        log_message("‼️ [조사 중단] 팀 체력 소진...", "error")
+        st.session_state.game_state = "GAME_OVER"
+        return True
     return False
 
 def start_battle(co_template):
