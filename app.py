@@ -812,7 +812,7 @@ def show_map_screen():
     if stage < len(companies):
         co = companies[stage]
 # show_map_screen 함수 내부 ...
-            with st.expander("🔍 혐의 및 실제 사례 정보 보기"):
+           with st.expander("🔍 혐의 및 실제 사례 정보 보기"):
                 st.markdown("---"); st.markdown("### 📚 실제 사례 기반 교육 정보")
                 # 교육 정보가 정상적으로 표시되는지 확인 (st.markdown 사용)
                 st.markdown(co.real_case_desc)
@@ -1116,4 +1116,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
