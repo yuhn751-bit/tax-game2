@@ -897,8 +897,8 @@ def calculate_card_cost(card):
                 cost = max(0, cost + art.effect["value"])
 
         final_cost = max(0, cost + 1)
-        return final
-        _cost
+        return final_cost  # ⭐ 이 부분이 수정되었습니다!
+    
     except Exception as e:
         log_message(f"⚠️ 카드 비용 계산 오류: {str(e)}", "error")
         return card.cost
@@ -2136,6 +2136,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
