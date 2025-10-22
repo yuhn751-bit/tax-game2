@@ -240,9 +240,9 @@ class DamageCalculator:
         
         if self.card.name in basic_cards:
             if self.stage_level == 3: 
-                bonus = 50
+                bonus = 70
             elif self.stage_level == 2: 
-                bonus = 30
+                bonus = 40
             elif self.stage_level == 1: 
                 bonus = 15
             else:
@@ -258,7 +258,7 @@ class DamageCalculator:
         """기업 규모에 따른 보정"""
         ref = 500
         scale = (self.company.tax_target / ref) ** 0.5 if self.company.tax_target > 0 else 0.5
-        capped = max(0.5, min(2.0, scale))
+        capped = max(0.5, min(2.5, scale))
         
         if abs(capped - 1.0) > 0.01:
             scaled = int(damage * capped)
@@ -509,11 +509,11 @@ LOGIC_CARD_DB = {
 
 ARTIFACT_DB = {
     "coffee": Artifact(name="☕ 믹스 커피", description="턴 시작 시 집중력 +1.", effect={"type": "on_turn_start", "value": 1, "subtype": "focus"}),
-    "forensic": Artifact(name="💻 포렌식 장비", description="팀 '증거(Evidence)' 스탯 +5.", effect={"type": "on_battle_start", "value": 5, "subtype": "stat_evidence"}),
+    "forensic": Artifact(name="💻 포렌식 장비", description="팀 '증거(Evidence)' 스탯 +7.", effect={"type": "on_battle_start", "value": 7, "subtype": "stat_evidence"}),
     "plan": Artifact(name="📜 조사계획서", description="첫 턴 카드 +1장.", effect={"type": "on_battle_start", "value": 1, "subtype": "draw"}),
-    "recorder": Artifact(name="🎤 녹음기", description="팀 '설득(Persuasion)' 스탯 +5.", effect={"type": "on_battle_start", "value": 5, "subtype": "stat_persuasion"}),
+    "recorder": Artifact(name="🎤 녹음기", description="팀 '설득(Persuasion)' 스탯 +7.", effect={"type": "on_battle_start", "value": 7, "subtype": "stat_persuasion"}),
     "book": Artifact(name="📖 오래된 법전", description="'판례 제시', '법령 재검토' 비용 -1.", effect={"type": "on_cost_calculate", "value": -1, "target_cards": ["판례 제시", "법령 재검토"]}),
-    "report": Artifact(name="📊 분기 보고서", description="팀 '분석(Analysis)' 스탯 +5.", effect={"type": "on_battle_start", "value": 5, "subtype": "stat_analysis"}),
+    "report": Artifact(name="📊 분기 보고서", description="팀 '분석(Analysis)' 스탯 +7.", effect={"type": "on_battle_start", "value": 7, "subtype": "stat_analysis"}),
     "badge": Artifact(name="🎖️ 우수 조사관 배지", description="첫 턴 카드 +1장. (조사계획서와 중첩 가능)", effect={"type": "on_battle_start", "value": 1, "subtype": "draw"}),
 }
 
@@ -1578,7 +1578,7 @@ def check_battle_end():
             st.session_state.bonus_reward_member = None
             next_state = "REWARD"
 
-            if random.random() < 0.34:
+            if random.random() < 0.32:
                 current_artifact_names = [art.name for art in st.session_state.player_artifacts]
                 available_artifacts = [art for art in ARTIFACT_DB.values() if art.name not in current_artifact_names]
                 if available_artifacts:
@@ -1587,7 +1587,7 @@ def check_battle_end():
                     log_message(f"🎁 [전리품 발견] 새로운 조사 도구 '{new_artifact.name}' 발견!", "info")
                     next_state = "REWARD_BONUS"
 
-            if next_state != "REWARD_BONUS" and random.random() < 0.49:
+            if next_state != "REWARD_BONUS" and random.random() < 0.55:
                 current_member_names = [m.name for m in st.session_state.player_team]
                 available_members = [m for m in TAX_MAN_DB.values() if m.name not in current_member_names]
                 if available_members:
@@ -2428,6 +2428,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
