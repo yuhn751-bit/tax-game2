@@ -2241,7 +2241,7 @@ def show_reward_screen():
     co = st.session_state.current_battle_company
     st.success(f"**{co.name}** 조사 완료. 총 {co.current_collected_tax:,}억원 추징.")
     
-    # 조사 보고서
+    # ⭐ 조사 보고서 - 항상 먼저 표시
     try:
         with st.expander("📋 조사 보고서 보기", expanded=False):
             report = EducationalSystem.generate_battle_report(co, st.session_state.battle_stats)
@@ -2258,16 +2258,22 @@ def show_reward_screen():
                 st.markdown(report['real_result'])
     except Exception as e:
         st.error(f"조사 보고서 생성 중 오류: {e}")
-        # 간단한 통계라도 표시
         st.info(f"총 {st.session_state.battle_stats['turns_taken']}턴 소요, {co.current_collected_tax:,}억원 추징")
     
     st.markdown("---")
 
-    if st.session_state.current_stage_level >= len(st.session_state.company_order) - 1:
-        st.session_state.game_state = "GAME_CLEAR"
-        st.rerun()
+    # ⭐ 마지막 스테이지 체크를 여기로 이동
+    is_final_stage = st.session_state.current_stage_level >= len(st.session_state.company_order) - 1
+    
+    if is_final_stage:
+        # 마지막 스테이지면 게임 클리어 버튼만 표시
+        st.success("🎊 모든 조사를 완료했습니다!")
+        if st.button("🏆 최종 결과 보기", type="primary", use_container_width=True):
+            st.session_state.game_state = "GAME_CLEAR"
+            st.rerun()
         return
 
+    # 마지막이 아니면 카드 선택
     st.subheader("🎁 획득할 카드 1장 선택")
     
     if 'reward_cards' not in st.session_state or not st.session_state.reward_cards:
@@ -2434,6 +2440,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
