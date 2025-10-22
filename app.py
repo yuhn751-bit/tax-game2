@@ -152,7 +152,7 @@ class Company:
     tactics: List[EvasionTactic]
     defense_actions: List[str]
     difficulty_tier: DifficultyTier
-    real_investigation_result: str = ""  # ⭐ 추가
+    real_investigation_result: str = ""  # ⭐ 이 줄 추가!
     current_collected_tax: int = 0
     
     def __post_init__(self):
@@ -2418,6 +2418,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
