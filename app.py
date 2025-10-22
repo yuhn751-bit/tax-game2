@@ -1815,7 +1815,7 @@ def show_battle_screen():
                     st.button("⚡ 자동", on_click=execute_auto_attack, use_container_width=True, type="secondary", 
                              help="[❤️-5, 💥-25% 페널티] 가장 강력한 카드로 자동 공격합니다.")
 
-        with st.expander("💡 특별 지시 (대기업 행동)"):
+        with st.expander("💡 특별 지시 (조사지원 요청)"):
             st.button("과세 논리 개발 (❤️ 현재 체력 50% 소모)", on_click=develop_tax_logic, use_container_width=True, type="primary",
                      help="현재 체력의 절반을 소모하여, 남은 혐의에 가장 유효하고 강력한 공격 카드 1장을 즉시 손패로 가져옵니다.")
 
@@ -2136,5 +2136,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
