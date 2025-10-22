@@ -448,20 +448,19 @@ class EducationalSystem:
         
         return tips
     
-@staticmethod
-def generate_battle_report(company, battle_stats):
-    """전투 종료 후 상세 보고서 생성"""
-    report = {
-        'efficiency': {
-            'damage_per_turn': battle_stats['total_damage_dealt'] / max(battle_stats['turns_taken'], 1),
-            'cards_per_turn': battle_stats['cards_played'] / max(battle_stats['turns_taken'], 1),
-            'target_achievement': (company.current_collected_tax / company.tax_target * 100) if company.tax_target > 0 else 0
-        },
-        'real_result': company.real_investigation_result
-        # ⭐ 'suggestions' 키는 아예 만들지 않음
-    }
-    
-    return report
+    @staticmethod
+    def generate_battle_report(company, battle_stats):
+        """전투 종료 후 상세 보고서 생성"""
+        report = {
+            'efficiency': {
+                'damage_per_turn': battle_stats['total_damage_dealt'] / max(battle_stats['turns_taken'], 1),
+                'cards_per_turn': battle_stats['cards_played'] / max(battle_stats['turns_taken'], 1),
+                'target_achievement': (company.current_collected_tax / company.tax_target * 100) if company.tax_target > 0 else 0
+            },
+            'real_result': getattr(company, 'real_investigation_result', '조사 결과 정보가 없습니다.')
+        }
+        
+        return report
 
 # --- 2. 게임 데이터베이스 (DB) ---
 TAX_MAN_DB = {
@@ -2425,6 +2424,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
