@@ -152,11 +152,10 @@ class Company:
     tactics: List[EvasionTactic]
     defense_actions: List[str]
     difficulty_tier: DifficultyTier
-    real_investigation_result: str = ""  # ⭐ 이 줄 추가!
+    real_investigation_result: str = ""  # ⭐ 이 줄이 있는지 확인!
     current_collected_tax: int = 0
     
     def __post_init__(self):
-        # 난이도별 데미지 조정
         min_dmg, max_dmg = self.team_hp_damage
         
         if self.difficulty_tier == DifficultyTier.EASY:
@@ -2079,20 +2078,25 @@ def show_reward_screen():
     co = st.session_state.current_battle_company
     st.success(f"**{co.name}** 조사 완료. 총 {co.current_collected_tax:,}억원 추징.")
     
-    # ⭐ 조사 보고서 - suggestions 관련 코드 완전 제거
-    with st.expander("📋 조사 보고서 보기", expanded=False):
-        report = EducationalSystem.generate_battle_report(co, st.session_state.battle_stats)
-        
-        st.subheader("📊 조사 효율성")
-        c1, c2, c3 = st.columns(3)
-        c1.metric("턴당 추징액", f"{report['efficiency']['damage_per_turn']:.1f}억원")
-        c2.metric("턴당 카드 사용", f"{report['efficiency']['cards_per_turn']:.1f}장")
-        c3.metric("목표 달성률", f"{report['efficiency']['target_achievement']:.1f}%")
-        
-        # ⭐ 실제 조사 결과 표시 (suggestions 제거)
-        if report.get('real_result'):
-            st.markdown("---")
-            st.markdown(report['real_result'])
+    # 조사 보고서
+    try:
+        with st.expander("📋 조사 보고서 보기", expanded=False):
+            report = EducationalSystem.generate_battle_report(co, st.session_state.battle_stats)
+            
+            st.subheader("📊 조사 효율성")
+            c1, c2, c3 = st.columns(3)
+            c1.metric("턴당 추징액", f"{report['efficiency']['damage_per_turn']:.1f}억원")
+            c2.metric("턴당 카드 사용", f"{report['efficiency']['cards_per_turn']:.1f}장")
+            c3.metric("목표 달성률", f"{report['efficiency']['target_achievement']:.1f}%")
+            
+            # 실제 조사 결과 표시
+            if report.get('real_result'):
+                st.markdown("---")
+                st.markdown(report['real_result'])
+    except Exception as e:
+        st.error(f"조사 보고서 생성 중 오류: {e}")
+        # 간단한 통계라도 표시
+        st.info(f"총 {st.session_state.battle_stats['turns_taken']}턴 소요, {co.current_collected_tax:,}억원 추징")
     
     st.markdown("---")
 
@@ -2229,21 +2233,24 @@ def show_reward_screen():
     st.success(f"**{co.name}** 조사 완료. 총 {co.current_collected_tax:,}억원 추징.")
     
     # 조사 보고서
-    with st.expander("📋 조사 보고서 보기", expanded=False):
-        report = EducationalSystem.generate_battle_report(co, st.session_state.battle_stats)
-        
-        st.subheader("📊 조사 효율성")
-        c1, c2, c3 = st.columns(3)
-        c1.metric("턴당 추징액", f"{report['efficiency']['damage_per_turn']:.1f}억원")
-        c2.metric("턴당 카드 사용", f"{report['efficiency']['cards_per_turn']:.1f}장")
-        c3.metric("목표 달성률", f"{report['efficiency']['target_achievement']:.1f}%")
-        
-        # 실제 조사 결과 표시
-        if report.get('real_result'):
-            st.markdown("---")
-            st.markdown(report['real_result'])
-        
-        # ⭐ suggestions 관련 코드는 완전히 제거됨
+    try:
+        with st.expander("📋 조사 보고서 보기", expanded=False):
+            report = EducationalSystem.generate_battle_report(co, st.session_state.battle_stats)
+            
+            st.subheader("📊 조사 효율성")
+            c1, c2, c3 = st.columns(3)
+            c1.metric("턴당 추징액", f"{report['efficiency']['damage_per_turn']:.1f}억원")
+            c2.metric("턴당 카드 사용", f"{report['efficiency']['cards_per_turn']:.1f}장")
+            c3.metric("목표 달성률", f"{report['efficiency']['target_achievement']:.1f}%")
+            
+            # 실제 조사 결과 표시
+            if report.get('real_result'):
+                st.markdown("---")
+                st.markdown(report['real_result'])
+    except Exception as e:
+        st.error(f"조사 보고서 생성 중 오류: {e}")
+        # 간단한 통계라도 표시
+        st.info(f"총 {st.session_state.battle_stats['turns_taken']}턴 소요, {co.current_collected_tax:,}억원 추징")
     
     st.markdown("---")
 
@@ -2418,6 +2425,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
