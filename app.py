@@ -701,6 +701,10 @@ def initialize_game(chosen_lead: TaxManCard, chosen_artifact: Artifact):
     st.session_state.player_discard = []
     st.session_state.player_artifacts = [chosen_artifact]
 
+    # ⭐ 이 부분 추가: team_hp를 삭제하여 강제로 재설정
+    if 'team_hp' in st.session_state:
+        del st.session_state['team_hp']
+    
     recalculate_team_stats()
 
     all_companies = sorted(COMPANY_DB, key=lambda x: x.tax_target)
@@ -2132,4 +2136,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
