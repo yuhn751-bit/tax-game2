@@ -660,7 +660,7 @@ def enemy_turn():
     elif "도피" in act or "잠적" in act or "시간" in act: log_icon = "⏳"
     prefix = f"{log_icon} [기업]" if not (co.size in ["대기업", "외국계", "글로벌 기업"] and "로펌" in act) else f"{log_icon} [로펌]"; log_message(f"{prefix} {act} (팀 사기 저하 ❤️-{dmg}!)", "error")
 
-# --- [수정] 전투 승리 시 35% 확률 보상 처리 방식 변경 ---
+# --- [수정] 전투 승리 시 확률 보상 처리 방식 변경 ---
 def check_battle_end():
     company = st.session_state.current_battle_company
     if company.current_collected_tax >= company.tax_target:
@@ -682,7 +682,7 @@ def check_battle_end():
         st.session_state.bonus_reward_member = None
         next_state = "REWARD"
 
-        if random.random() < 0.36:
+        if random.random() < 0.34:
             current_artifact_names = [art.name for art in st.session_state.player_artifacts]
             available_artifacts = [art for art in ARTIFACT_DB.values() if art.name not in current_artifact_names]
             if available_artifacts:
@@ -691,7 +691,7 @@ def check_battle_end():
                 log_message(f"🎁 [전리품 발견] 새로운 조사 도구 '{new_artifact.name}' 발견!", "info")
                 next_state = "REWARD_BONUS"
 
-        if next_state != "REWARD_BONUS" and random.random() < 0.70:
+        if next_state != "REWARD_BONUS" and random.random() < 0.49:
             current_member_names = [m.name for m in st.session_state.player_team]
             available_members = [m for m in TAX_MAN_DB.values() if m.name not in current_member_names]
             if available_members:
@@ -1215,5 +1215,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
