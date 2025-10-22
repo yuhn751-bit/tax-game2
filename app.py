@@ -235,7 +235,7 @@ class DamageCalculator:
     def _calculate_base_and_stage_bonus(self):
         """기본 대미지 + 스테이지 숙련 보너스"""
         base = self.card.base_damage
-        basic_cards = ["단순 자료 대사", "기본 경비 적정성 검토", 
+        basic_cards = ["자료 대조", "기본 경비 적정성 검토", 
                       "단순 경비 처리 오류 지적", "세금계산서 대사"]
         
         if self.card.name in basic_cards:
@@ -482,7 +482,7 @@ TAX_MAN_DB = {
 }
 
 LOGIC_CARD_DB = {
-    "c_tier_01": LogicCard(name="단순 자료 대사", cost=0, base_damage=4, tax_type=[TaxType.COMMON], attack_category=[AttackCategory.COMMON], description="매입/매출 자료 단순 비교.", text="자료 대사 기본 습득."),
+    "c_tier_01": LogicCard(name="자료 대조", cost=0, base_damage=4, tax_type=[TaxType.COMMON], attack_category=[AttackCategory.COMMON], description="매입/매출 자료 단순 비교.", text="자료 대사 기본 습득."),
     "c_tier_02": LogicCard(name="법령 재검토", cost=0, base_damage=0, tax_type=[TaxType.COMMON], attack_category=[AttackCategory.COMMON], description="카드 1장 뽑기.", text="관련 법령 재검토.", special_effect={"type": "draw", "value": 1}),
     "util_01": LogicCard(name="초과근무", cost=1, base_damage=0, tax_type=[TaxType.COMMON], attack_category=[AttackCategory.COMMON], description="카드 2장 뽑기.", text="밤샘 근무로 단서 발견!", special_effect={"type": "draw", "value": 2}),
     "basic_01": LogicCard(name="기본 경비 적정성 검토", cost=1, base_damage=8, tax_type=[TaxType.CORP], attack_category=[AttackCategory.COST, AttackCategory.COMMON], description="기본 비용 처리 적정성 검토.", text="법인세법 비용 조항 분석."),
@@ -2428,6 +2428,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
