@@ -449,19 +449,20 @@ class EducationalSystem:
         
         return tips
     
-    @staticmethod
-    def generate_battle_report(company, battle_stats):
-        """전투 종료 후 상세 보고서 생성"""
-        report = {
-            'efficiency': {
-                'damage_per_turn': battle_stats['total_damage_dealt'] / max(battle_stats['turns_taken'], 1),
-                'cards_per_turn': battle_stats['cards_played'] / max(battle_stats['turns_taken'], 1),
-                'target_achievement': (company.current_collected_tax / company.tax_target * 100) if company.tax_target > 0 else 0
-            },
-            'real_result': company.real_investigation_result  # ⭐ 실제 조사 결과 추가
-        }
-        
-        return report
+@staticmethod
+def generate_battle_report(company, battle_stats):
+    """전투 종료 후 상세 보고서 생성"""
+    report = {
+        'efficiency': {
+            'damage_per_turn': battle_stats['total_damage_dealt'] / max(battle_stats['turns_taken'], 1),
+            'cards_per_turn': battle_stats['cards_played'] / max(battle_stats['turns_taken'], 1),
+            'target_achievement': (company.current_collected_tax / company.tax_target * 100) if company.tax_target > 0 else 0
+        },
+        'real_result': company.real_investigation_result
+        # ⭐ 'suggestions' 키는 아예 만들지 않음
+    }
+    
+    return report
 
 # --- 2. 게임 데이터베이스 (DB) ---
 TAX_MAN_DB = {
@@ -2228,7 +2229,7 @@ def show_reward_screen():
     st.success(f"**{co.name}** 조사 완료. 총 {co.current_collected_tax:,}억원 추징.")
     
     # 조사 보고서
-    with st.expander("📋 조사 보고서 보기"):
+    with st.expander("📋 조사 보고서 보기", expanded=False):
         report = EducationalSystem.generate_battle_report(co, st.session_state.battle_stats)
         
         st.subheader("📊 조사 효율성")
@@ -2237,10 +2238,12 @@ def show_reward_screen():
         c2.metric("턴당 카드 사용", f"{report['efficiency']['cards_per_turn']:.1f}장")
         c3.metric("목표 달성률", f"{report['efficiency']['target_achievement']:.1f}%")
         
-        if report['suggestions']:
-            st.subheader("💡 개선 제안")
-            for suggestion in report['suggestions']:
-                st.info(suggestion)
+        # 실제 조사 결과 표시
+        if report.get('real_result'):
+            st.markdown("---")
+            st.markdown(report['real_result'])
+        
+        # ⭐ suggestions 관련 코드는 완전히 제거됨
     
     st.markdown("---")
 
@@ -2301,7 +2304,7 @@ def show_reward_screen():
 
     st.markdown("---")
     st.button("카드 획득 안 함 (다음 스테이지로)", on_click=go_to_next_stage, type="secondary", use_container_width=True)
-
+    
 def show_game_over_screen():
     """게임 오버 화면"""
     st.header("... 조사 중단 ...")
@@ -2415,6 +2418,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
