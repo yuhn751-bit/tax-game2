@@ -2152,6 +2152,66 @@ def show_reward_screen():
     st.markdown("---")
     st.button("카드 획득 안 함 (다음 스테이지로)", on_click=go_to_next_stage, type="secondary", use_container_width=True)
 
+def show_reward_bonus_screen():
+    """보너스 보상 화면"""
+    st.header("✨ 추가 보상 발견!")
+    st.markdown("---")
+
+    reward_artifact = st.session_state.get('bonus_reward_artifact', None)
+    reward_member = st.session_state.get('bonus_reward_member', None)
+
+    if reward_artifact:
+        st.subheader("🎁 새로운 조사 도구를 발견했습니다!")
+        with st.container(border=True):
+            st.markdown(f"**{reward_artifact.name}**")
+            st.write(reward_artifact.description)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("👍 획득하기", use_container_width=True, type="primary"):
+                st.session_state.player_artifacts.append(reward_artifact)
+                log_message(f"🎁 조사 도구 '{reward_artifact.name}' 정식 획득!", "success")
+                st.toast(f"획득: {reward_artifact.name}", icon="🧰")
+                recalculate_team_stats()
+                st.session_state.bonus_reward_artifact = None
+                st.session_state.game_state = "REWARD"
+                st.rerun()
+        with col2:
+            if st.button("👎 포기하기", use_container_width=True):
+                log_message(f"🗑️ 조사 도구 '{reward_artifact.name}' 획득 포기.", "warning")
+                st.session_state.bonus_reward_artifact = None
+                st.session_state.game_state = "REWARD"
+                st.rerun()
+
+    elif reward_member:
+        st.subheader("👥 새로운 팀원이 합류를 기다립니다!")
+        with st.container(border=True):
+            st.markdown(f"**{reward_member.name}**")
+            st.write(f"({reward_member.description})")
+            st.info(f"**{reward_member.ability_name}**: {reward_member.ability_desc}")
+            st.caption(f"HP: {reward_member.hp}, 집중력: {reward_member.focus}, 분석:{reward_member.analysis}, 설득:{reward_member.persuasion}, 증거:{reward_member.evidence}, 데이터:{reward_member.data}")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("👍 영입하기", use_container_width=True, type="primary"):
+                st.session_state.player_team.append(reward_member)
+                log_message(f"👥 '{reward_member.name}' 조사관 정식 합류!", "success")
+                st.toast(f"합류: {reward_member.name}", icon="👨‍💼")
+                recalculate_team_stats()
+                st.session_state.bonus_reward_member = None
+                st.session_state.game_state = "REWARD"
+                st.rerun()
+        with col2:
+            if st.button("👎 거절하기", use_container_width=True):
+                log_message(f"🚶 '{reward_member.name}' 조사관 영입 거절.", "warning")
+                st.session_state.bonus_reward_member = None
+                st.session_state.game_state = "REWARD"
+                st.rerun()
+    else:
+        st.warning("표시할 추가 보상이 없습니다. 카드 선택 화면으로 이동합니다.")
+        st.session_state.game_state = "REWARD"
+        st.rerun()
+
 def show_reward_screen():
     """보상 화면"""
     # 아직 처리 안 된 보너스 보상이 있으면 REWARD_BONUS로 리다이렉트
@@ -2354,6 +2414,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
