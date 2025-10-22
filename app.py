@@ -2079,7 +2079,7 @@ def show_reward_screen():
     
     # 조사 보고서
     try:
-        with st.expander("📋 조사 보고서 보기", expanded=False):
+        with st.expander("📋 **★조사 보고서 보기★**", expanded=False):
             report = EducationalSystem.generate_battle_report(co, st.session_state.battle_stats)
             
             st.subheader("📊 조사 효율성")
@@ -2428,6 +2428,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
