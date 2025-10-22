@@ -240,9 +240,9 @@ class DamageCalculator:
         
         if self.card.name in basic_cards:
             if self.stage_level == 3: 
-                bonus = 70
+                bonus = 50
             elif self.stage_level == 2: 
-                bonus = 40
+                bonus = 30
             elif self.stage_level == 1: 
                 bonus = 15
             else:
@@ -2440,6 +2440,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
