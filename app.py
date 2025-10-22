@@ -2066,6 +2066,7 @@ def show_battle_screen():
 
 def show_reward_screen():
     """보상 화면"""
+    # 아직 처리 안 된 보너스 보상이 있으면 REWARD_BONUS로 리다이렉트
     if st.session_state.get('bonus_reward_artifact') or st.session_state.get('bonus_reward_member'):
         st.session_state.game_state = "REWARD_BONUS"
         st.rerun()
@@ -2077,7 +2078,7 @@ def show_reward_screen():
     co = st.session_state.current_battle_company
     st.success(f"**{co.name}** 조사 완료. 총 {co.current_collected_tax:,}억원 추징.")
     
-    # ⭐ 조사 보고서 - 개선 제안 제거, 실제 조사 결과로 대체
+    # ⭐ 조사 보고서 - suggestions 관련 코드 완전 제거
     with st.expander("📋 조사 보고서 보기", expanded=False):
         report = EducationalSystem.generate_battle_report(co, st.session_state.battle_stats)
         
@@ -2087,7 +2088,7 @@ def show_reward_screen():
         c2.metric("턴당 카드 사용", f"{report['efficiency']['cards_per_turn']:.1f}장")
         c3.metric("목표 달성률", f"{report['efficiency']['target_achievement']:.1f}%")
         
-        # ⭐ 실제 조사 결과 표시 (개선 제안 제거)
+        # ⭐ 실제 조사 결과 표시 (suggestions 제거)
         if report.get('real_result'):
             st.markdown("---")
             st.markdown(report['real_result'])
@@ -2151,7 +2152,7 @@ def show_reward_screen():
 
     st.markdown("---")
     st.button("카드 획득 안 함 (다음 스테이지로)", on_click=go_to_next_stage, type="secondary", use_container_width=True)
-
+    
 def show_reward_bonus_screen():
     """보너스 보상 화면"""
     st.header("✨ 추가 보상 발견!")
@@ -2414,6 +2415,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
