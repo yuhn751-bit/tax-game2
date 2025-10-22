@@ -1578,7 +1578,7 @@ def check_battle_end():
             st.session_state.bonus_reward_member = None
             next_state = "REWARD"
 
-            if random.random() < 0.32:
+            if random.random() < 0.35:
                 current_artifact_names = [art.name for art in st.session_state.player_artifacts]
                 available_artifacts = [art for art in ARTIFACT_DB.values() if art.name not in current_artifact_names]
                 if available_artifacts:
@@ -1587,7 +1587,7 @@ def check_battle_end():
                     log_message(f"🎁 [전리품 발견] 새로운 조사 도구 '{new_artifact.name}' 발견!", "info")
                     next_state = "REWARD_BONUS"
 
-            if next_state != "REWARD_BONUS" and random.random() < 0.55:
+            if next_state != "REWARD_BONUS" and random.random() < 0.58:
                 current_member_names = [m.name for m in st.session_state.player_team]
                 available_members = [m for m in TAX_MAN_DB.values() if m.name not in current_member_names]
                 if available_members:
@@ -2428,6 +2428,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
