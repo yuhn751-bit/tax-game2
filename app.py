@@ -235,8 +235,8 @@ class DamageCalculator:
     def _calculate_base_and_stage_bonus(self):
         """기본 대미지 + 스테이지 숙련 보너스"""
         base = self.card.base_damage
-        basic_cards = ["자료 대조", "기본 경비 적정성 검토", 
-                      "단순 경비 처리 오류 지적", "세금계산서 대사"]
+        basic_cards = ["기본 자료 대사", "기본 경비 적정성 검토", 
+                      "경비 처리 오류 지적", "세금계산서 대사"]
         
         if self.card.name in basic_cards:
             if self.stage_level == 3: 
@@ -303,7 +303,7 @@ class DamageCalculator:
         bonus = 0
         member_names = [m.name for m in self.team_members]
         
-        if "이찰수" in member_names and self.card.name in ["기본 경비 적정성 검토", "단순 경비 처리 오류 지적"]:
+        if "이찰수" in member_names and self.card.name in ["기본 경비 적정성 검토", "경비 처리 오류 지적"]:
             bonus += 8
             self.log_messages.append("✨ [기본기] +8억원")
         
@@ -474,7 +474,7 @@ TAX_MAN_DB = {
     "oh": TaxManCard(name="전팔성", description="[가상] 데이터 글로벌기업. TIS 초기 멤버로 시스템 이해도 높음. 신종 거래 분석 능함.", cost=0, hp=110, focus=2, analysis=7, persuasion=6, evidence=7, data=8, ability_name="[데이터 마이닝]", ability_desc="기본 적출액 70억 이상 '데이터' 관련 카드(자금출처조사 등) 피해량 +15."),
     "jo": TaxManCard(name="조용규", description="세법 이론가. 교육원 교수 경험. 법리 해석과 판례 분석 뛰어남.", cost=0, hp=80, focus=3, analysis=9, persuasion=7, evidence=6, data=7, ability_name="[세법 교본]", ability_desc="'판례 제시', '법령 재검토' 카드의 효과(피해량/드로우) 2배 적용."),
     "park": TaxManCard(name="박조연", description="[가상] 세법 신동. 세무사/CPA 동시 합격 특채. 날카로운 법리 검토 능력.", cost=0, hp=70, focus=3, analysis=7, persuasion=5, evidence=6, data=7, ability_name="[법리 검토]", ability_desc="턴마다 처음 사용하는 '분석' 또는 '설득' 유형 카드의 비용 -1."),
-    "lee": TaxManCard(name="이찰수", description="[가상] 7급 공채 신입. 열정 넘치나 경험 부족. 기본기 충실.", cost=0, hp=80, focus=2, analysis=5, persuasion=5, evidence=5, data=5, ability_name="[기본기]", ability_desc="'기본 경비 적정성 검토', '단순 경비 처리 오류 지적' 카드 피해량 +8."),
+    "lee": TaxManCard(name="이찰수", description="[가상] 7급 공채 신입. 열정 넘치나 경험 부족. 기본기 충실.", cost=0, hp=80, focus=2, analysis=5, persuasion=5, evidence=5, data=5, ability_name="[기본기]", ability_desc="'기본 경비 적정성 검토', '경비 처리 오류 지적' 카드 피해량 +8."),
     "ahn_wg": TaxManCard(name="안원규", description="특수 조사의 귀재. 서울청 조사0국 등에서 대기업 비자금 등 특수 조사 경험 풍부.", cost=0, hp=110, focus=2, analysis=8, persuasion=5, evidence=10, data=6, ability_name="[특수 조사]", ability_desc="'현장 압수수색', '차명계좌 추적' 카드 비용 -1 (최소 0)."),
     "yoo_jj": TaxManCard(name="유재전", description="관리자. 서울청 조사0국 대기업 정기 조사 및 상속/증여세 조사 담당. 분석/설득 강점.", cost=0, hp=100, focus=2, analysis=8, persuasion=7, evidence=7, data=7, ability_name="[정기 조사 전문]", ability_desc="'단순 오류(Error)' 혐의 공격 시, 팀 '설득' 스탯 10당 피해량 +1."),
     "kim_th": TaxManCard(name="김태후", description="관리자. 중부청 조사0국 대기업/중견기업 심층 기획 및 국제거래 조사 담당. 증거 확보/데이터 분석 탁월.", cost=0, hp=105, focus=2, analysis=9, persuasion=5, evidence=9, data=8, ability_name="[심층 기획 조사]", ability_desc="'자본 거래(Capital Tx)' 혐의 공격 시, 팀 '증거' 스탯의 10%만큼 추가 피해."),
@@ -482,11 +482,11 @@ TAX_MAN_DB = {
 }
 
 LOGIC_CARD_DB = {
-    "c_tier_01": LogicCard(name="자료 대조", cost=0, base_damage=4, tax_type=[TaxType.COMMON], attack_category=[AttackCategory.COMMON], description="매입/매출 자료 단순 비교.", text="자료 대사 기본 습득."),
+    "c_tier_01": LogicCard(name="기본 자료 대사", cost=0, base_damage=4, tax_type=[TaxType.COMMON], attack_category=[AttackCategory.COMMON], description="매입/매출 자료 단순 비교.", text="자료 대사 기본 습득."),
     "c_tier_02": LogicCard(name="법령 재검토", cost=0, base_damage=0, tax_type=[TaxType.COMMON], attack_category=[AttackCategory.COMMON], description="카드 1장 뽑기.", text="관련 법령 재검토.", special_effect={"type": "draw", "value": 1}),
     "util_01": LogicCard(name="초과근무", cost=1, base_damage=0, tax_type=[TaxType.COMMON], attack_category=[AttackCategory.COMMON], description="카드 2장 뽑기.", text="밤샘 근무로 단서 발견!", special_effect={"type": "draw", "value": 2}),
     "basic_01": LogicCard(name="기본 경비 적정성 검토", cost=1, base_damage=8, tax_type=[TaxType.CORP], attack_category=[AttackCategory.COST, AttackCategory.COMMON], description="기본 비용 처리 적정성 검토.", text="법인세법 비용 조항 분석."),
-    "basic_02": LogicCard(name="단순 경비 처리 오류 지적", cost=1, base_damage=10, tax_type=[TaxType.CORP], attack_category=[AttackCategory.COST, AttackCategory.COMMON], description="증빙 미비 경비 지적.", text="증빙 대조 기본 습득."),
+    "basic_02": LogicCard(name="경비 처리 오류 지적", cost=1, base_damage=10, tax_type=[TaxType.CORP], attack_category=[AttackCategory.COST, AttackCategory.COMMON], description="증빙 미비 경비 지적.", text="증빙 대조 기본 습득."),
     "b_tier_04": LogicCard(name="세금계산서 대사", cost=1, base_damage=12, tax_type=[TaxType.VAT], attack_category=[AttackCategory.REVENUE, AttackCategory.COST], description="매입/매출 세금계산서 합계표 대조.", text="합계표 불일치 확인."),
     "c_tier_03": LogicCard(name="가공 증빙 수취 분석", cost=2, base_damage=15, tax_type=[TaxType.CORP, TaxType.VAT], attack_category=[AttackCategory.COST, AttackCategory.REVENUE], description="실물 거래 없이 세금계산서만 수취한 정황을 분석합니다.", text="가짜 세금계산서 흐름 파악."),
     "corp_01": LogicCard(name="접대비 한도 초과", cost=2, base_damage=25, tax_type=[TaxType.CORP], attack_category=[AttackCategory.COST], description="법정 한도를 초과한 접대비를 비용으로 처리한 부분을 지적합니다.", text="법인세법 접대비 조항 습득."),
@@ -2428,6 +2428,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
