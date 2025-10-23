@@ -1261,7 +1261,6 @@ def execute_attack(card_index, tactic_index, penalty_mult=1.0):
         if is_crit or dmg_ratio > 0.3:
             hit_level = 3
             prefix = "💥💥 [초 치명타!]"
-            st.balloons()
         elif damage_result['multiplier'] > 1.0 or dmg_ratio > 0.15:
             hit_level = 2
             prefix = "🔥🔥 [치명타!]"
@@ -1843,7 +1842,7 @@ def show_map_screen():
             st.warning(f"**예상 턴당 데미지:** {co.team_hp_damage[0]}~{co.team_hp_damage[1]} ❤️")
             st.info(f"**목표 추징 세액:** {co.tax_target:,} 억원 💰")
             
-            with st.expander("🔍 혐의 및 실제 사례 정보 보기"):
+            with st.expander("🔍 혐의 및 실제 사례 정보 보기", expanded=True):
                 st.markdown("---")
                 st.markdown("### 📚 실제 사례 기반 교육 정보")
                 st.markdown(co.real_case_desc)
@@ -2339,6 +2338,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
