@@ -1182,6 +1182,7 @@ def select_card_to_play(card_index):
             execute_utility_card(card_index)
         else:
             st.session_state.selected_card_index = card_index
+            st.rerun()
     
     except Exception as e:
         log_message(f"⚠️ 카드 선택 오류: {str(e)}", "error")
@@ -1189,6 +1190,7 @@ def select_card_to_play(card_index):
 def cancel_card_selection():
     """카드 선택 취소"""
     st.session_state.selected_card_index = None
+    st.rerun()
 
 def execute_attack(card_index, tactic_index, penalty_mult=1.0):
     """공격 실행"""
@@ -1342,6 +1344,7 @@ def execute_attack(card_index, tactic_index, penalty_mult=1.0):
         st.session_state.player_discard.append(st.session_state.player_hand.pop(card_index))
         st.session_state.selected_card_index = None
         check_battle_end()
+        st.rerun()
     
     except Exception as e:
         log_message(f"⚠️ 공격 실행 오류: {str(e)}", "error")
@@ -1515,6 +1518,7 @@ def end_player_turn():
         
         if not check_battle_end():
             start_player_turn()
+            st.rerun()
     
     except Exception as e:
         log_message(f"⚠️ 턴 종료 오류: {str(e)}", "error")
@@ -1858,6 +1862,7 @@ def show_map_screen():
 
             if st.button(f"🚨 {co.name} 조사 시작", type="primary", use_container_width=True):
                 start_battle(co)
+                st.rerun()
     else:
         st.session_state.game_state = "GAME_CLEAR"
         st.rerun()
@@ -2101,6 +2106,7 @@ def show_reward_screen():
         st.success("🎊 모든 조사를 완료했습니다!")
         if st.button("🏆 최종 결과 보기", type="primary", use_container_width=True):
             st.session_state.game_state = "GAME_CLEAR"
+            st.rerun()
         return
 
     # 마지막이 아니면 카드 선택
@@ -2173,6 +2179,7 @@ def show_reward_bonus_screen():
 
         col1, col2 = st.columns(2)
         with col1:
+            # ⭐ st.rerun() 제거
             if st.button("👍 획득하기", use_container_width=True, type="primary"):
                 st.session_state.player_artifacts.append(reward_artifact)
                 log_message(f"🎁 조사 도구 '{reward_artifact.name}' 정식 획득!", "success")
@@ -2180,11 +2187,14 @@ def show_reward_bonus_screen():
                 recalculate_team_stats()
                 st.session_state.bonus_reward_artifact = None
                 st.session_state.game_state = "REWARD"
+                # st.rerun() 제거! Streamlit이 자동으로 리런함
         with col2:
+            # ⭐ st.rerun() 제거
             if st.button("👎 포기하기", use_container_width=True):
                 log_message(f"🗑️ 조사 도구 '{reward_artifact.name}' 획득 포기.", "warning")
                 st.session_state.bonus_reward_artifact = None
                 st.session_state.game_state = "REWARD"
+                # st.rerun() 제거!
 
     elif reward_member:
         st.subheader("👥 새로운 팀원이 합류를 기다립니다!")
@@ -2196,6 +2206,7 @@ def show_reward_bonus_screen():
 
         col1, col2 = st.columns(2)
         with col1:
+            # ⭐ st.rerun() 제거
             if st.button("👍 영입하기", use_container_width=True, type="primary"):
                 st.session_state.player_team.append(reward_member)
                 log_message(f"👥 '{reward_member.name}' 조사관 정식 합류!", "success")
@@ -2203,14 +2214,18 @@ def show_reward_bonus_screen():
                 recalculate_team_stats()
                 st.session_state.bonus_reward_member = None
                 st.session_state.game_state = "REWARD"
+                # st.rerun() 제거!
         with col2:
+            # ⭐ st.rerun() 제거
             if st.button("👎 거절하기", use_container_width=True):
                 log_message(f"🚶 '{reward_member.name}' 조사관 영입 거절.", "warning")
                 st.session_state.bonus_reward_member = None
                 st.session_state.game_state = "REWARD"
+                # st.rerun() 제거!
     else:
         st.warning("표시할 추가 보상이 없습니다. 카드 선택 화면으로 이동합니다.")
         st.session_state.game_state = "REWARD"
+        # ⭐ 여기도 st.rerun() 제거!
 
 def show_reward_screen():
     """보상 화면"""
@@ -2255,6 +2270,7 @@ def show_reward_screen():
         st.success("🎊 모든 조사를 완료했습니다!")
         if st.button("🏆 최종 결과 보기", type="primary", use_container_width=True):
             st.session_state.game_state = "GAME_CLEAR"
+            st.rerun()
         return
 
     # 마지막이 아니면 카드 선택
@@ -2424,39 +2440,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
