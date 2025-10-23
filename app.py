@@ -357,7 +357,7 @@ class DamageCalculator:
                 mult *= 1.25
                 descriptions.append("✨ [대기업 저격 +25%]")
         
-        if "이승소" in member_names and self.tactic.method_type == MethodType.INTENTIONAL:
+        if "김성래" in member_names and self.tactic.method_type == MethodType.INTENTIONAL:
             mult *= 1.2
             descriptions.append("✨ [지하경제 양성화 +20%]")
         
@@ -468,8 +468,8 @@ TAX_MAN_DB = {
     "han": TaxManCard(name="송민칠", description="국제거래 조사 실무자. 강인한 체력과 끈질긴 분석으로 다수 글로벌기업 조사를 성공적으로 수행함.", cost=0, hp=110, focus=2, analysis=9, persuasion=6, evidence=8, data=9, ability_name="[역외탈세 추적]", ability_desc="'외국계' 기업 또는 '자본 거래' 혐의 공격 시 최종 피해량 +30%."),
     "baek": TaxManCard(name="신태연", description="대전청 인사전문가. 도서관장, 동물원장 등 특수 경험. 의회 출신으로 정무감각", cost=0, hp=90, focus=2, analysis=7, persuasion=10, evidence=9, data=7, ability_name="[TIS 분석]", ability_desc="'금융거래 분석', '빅데이터 분석' 등 데이터 관련 카드 비용 -1."),
     "seo": TaxManCard(name="허준", description="글로벌기업 조사 전문. 비정기 조사를 강력 지휘. 대기업 조사 정통.", cost=0, hp=100, focus=2, analysis=8, persuasion=9, evidence=8, data=7, ability_name="[대기업 저격]", ability_desc="'대기업', '외국계' 기업의 '법인세' 혐의 카드 공격 시 최종 피해량 +25%."),
-    "kim_dj": TaxManCard(name="김성래", description="세정 운영 글로벌기업. 데이터 기반 대규모 조사 경험.", cost=0, hp=90, focus=2, analysis=10, persuasion=7, evidence=7, data=10, ability_name="[부동산 투기 조사]", ability_desc="팀 '데이터' 스탯 50+ 시, 턴 시작 시 '금융거래 분석' 카드 1장 생성."),
-    "lee_hd": TaxManCard(name="이승소", description="강력한 추진력의 조사통. 지하경제 양성화 및 역외탈세 추적 의지 강함.", cost=0, hp=100, focus=3, analysis=7, persuasion=8, evidence=10, data=8, ability_name="[지하경제 양성화]", ability_desc="'고의적 누락(Intentional)' 혐의 공격의 최종 피해량 +20%."),
+    "kim_dj": TaxManCard(name="이승소", description="세정 운영 글로벌기업. 데이터 기반 대규모 조사 경험.", cost=0, hp=90, focus=2, analysis=10, persuasion=7, evidence=7, data=10, ability_name="[부동산 투기 조사]", ability_desc="팀 '데이터' 스탯 50+ 시, 턴 시작 시 '금융거래 분석' 카드 1장 생성."),
+    "lee_hd": TaxManCard(name="김성래", description="강력한 추진력의 조사통. 지하경제 양성화 및 역외탈세 추적 의지 강함.", cost=0, hp=100, focus=3, analysis=7, persuasion=8, evidence=10, data=8, ability_name="[지하경제 양성화]", ability_desc="'고의적 누락(Intentional)' 혐의 공격의 최종 피해량 +20%."),
     "oh": TaxManCard(name="우병찬", description="대기업 조사 전문가. 지주사 조사에 능함. ERP구축 경험.", cost=0, hp=110, focus=2, analysis=7, persuasion=6, evidence=7, data=8, ability_name="[데이터 마이닝]", ability_desc="기본 적출액 70억 이상 '데이터' 관련 카드(자금출처조사 등) 피해량 +15."),
     "kim": TaxManCard(name="박찬보", description="현장 글로벌기업. 서울청 조사0국 '지하경제 양성화' 관련 조사 다수 수행.", cost=0, hp=90, focus=2, analysis=6, persuasion=8, evidence=9, data=5, ability_name="[압수수색]", ability_desc="'현장 압수수색' 카드 사용 시 15% 확률로 '결정적 증거' 추가 획득."),
     "jo": TaxManCard(name="구자환", description="인공지능 전문가. 국세공무원교육원 교수 경험. 법리 해석과 판례 분석 뛰어남.", cost=0, hp=80, focus=3, analysis=9, persuasion=7, evidence=6, data=7, ability_name="[세법 교본]", ability_desc="'판례 제시', '법령 재검토' 카드의 효과(피해량/드로우) 2배 적용."),
@@ -975,7 +975,7 @@ def start_player_turn():
     
     st.session_state.player_focus_current = min(st.session_state.player_focus_current, st.session_state.player_focus_max + 10)
 
-    if "김성래" in [m.name for m in st.session_state.player_team] and st.session_state.team_stats["data"] >= 50 and not st.session_state.get('kim_dj_effect_used', False):
+    if "이승소" in [m.name for m in st.session_state.player_team] and st.session_state.team_stats["data"] >= 50 and not st.session_state.get('kim_dj_effect_used', False):
         new = copy.deepcopy(LOGIC_CARD_DB["b_tier_01"])
         new.just_created = True
         st.session_state.player_hand.append(new)
@@ -2440,6 +2440,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
