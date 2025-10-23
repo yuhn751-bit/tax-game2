@@ -2079,24 +2079,16 @@ def show_reward_bonus_screen():
 
         col1, col2 = st.columns(2)
         with col1:
-            # ⭐ st.rerun() 제거
             if st.button("👍 획득하기", use_container_width=True, type="primary"):
                 st.session_state.player_artifacts.append(reward_artifact)
                 log_message(f"🎁 조사 도구 '{reward_artifact.name}' 정식 획득!", "success")
                 st.toast(f"획득: {reward_artifact.name}", icon="🧰")
                 recalculate_team_stats()
-                st.session_state.bonus_reward_artifact = None
-                st.session_state.bonus_reward_member = None
                 st.session_state.game_state = "REWARD"
-                # st.rerun() 제거! Streamlit이 자동으로 리런함
         with col2:
-            # ⭐ st.rerun() 제거
             if st.button("👎 포기하기", use_container_width=True):
                 log_message(f"🗑️ 조사 도구 '{reward_artifact.name}' 획득 포기.", "warning")
-                st.session_state.bonus_reward_artifact = None
-                st.session_state.bonus_reward_member = None
                 st.session_state.game_state = "REWARD"
-                # st.rerun() 제거!
 
     elif reward_member:
         st.subheader("👥 새로운 팀원이 합류를 기다립니다!")
@@ -2108,26 +2100,18 @@ def show_reward_bonus_screen():
 
         col1, col2 = st.columns(2)
         with col1:
-            # ⭐ st.rerun() 제거
             if st.button("👍 영입하기", use_container_width=True, type="primary"):
                 st.session_state.player_team.append(reward_member)
                 log_message(f"👥 '{reward_member.name}' 조사관 정식 합류!", "success")
                 st.toast(f"합류: {reward_member.name}", icon="👨‍💼")
                 recalculate_team_stats()
-                st.session_state.bonus_reward_artifact = None
-                st.session_state.bonus_reward_member = None
                 st.session_state.game_state = "REWARD"
         with col2:
-            # ⭐ st.rerun() 제거
             if st.button("👎 거절하기", use_container_width=True):
                 log_message(f"🚶 '{reward_member.name}' 조사관 영입 거절.", "warning")
-                st.session_state.bonus_reward_artifact = None
-                st.session_state.bonus_reward_member = None
                 st.session_state.game_state = "REWARD"
     else:
         st.warning("표시할 추가 보상이 없습니다.")
-        st.session_state.bonus_reward_artifact = None
-        st.session_state.bonus_reward_member = None
         st.session_state.game_state = "REWARD"
 
 def show_reward_screen():
@@ -2343,5 +2327,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
