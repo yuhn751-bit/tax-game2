@@ -1560,7 +1560,7 @@ def check_battle_end():
             log_message(f"🎉 [조사 승리] 목표 {company.tax_target:,}억원 달성! (초과 {bonus:,}억원)", "success")
             st.session_state.total_collected_tax += company.current_collected_tax
 
-            heal_amount = int(st.session_state.team_max_hp * 0.3)
+            heal_amount = int(st.session_state.team_max_hp * 0.25)
             st.session_state.team_hp = min(st.session_state.team_max_hp, st.session_state.team_hp + heal_amount)
             log_message(f"🩺 [전투 승리] 팀 정비. (체력 +{heal_amount})", "success")
             
@@ -2338,6 +2338,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
