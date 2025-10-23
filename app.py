@@ -303,7 +303,7 @@ class DamageCalculator:
         bonus = 0
         member_names = [m.name for m in self.team_members]
         
-        if "이찰수" in member_names and self.card.name in ["기본 경비 적정성 검토", "경비 처리 오류 지적"]:
+        if "오슬비" in member_names and self.card.name in ["기본 경비 적정성 검토", "경비 처리 오류 지적"]:
             bonus += 8
             self.log_messages.append("✨ [기본기] +8억원")
         
@@ -464,8 +464,8 @@ class EducationalSystem:
 
 # --- 2. 게임 데이터베이스 (DB) ---
 TAX_MAN_DB = {
-    "lim": TaxManCard(name="임향수", description="조사통의 대부. 대기업 비자금, 불법 증여 조사 지휘 경험 풍부.", cost=0, hp=120, focus=3, analysis=10, persuasion=10, evidence=10, data=10, ability_name="[기획 조사]", ability_desc="매 턴 집중력+1. 분석/데이터 스탯 비례 비용/자본 카드 피해량 증가."),
-    "han": TaxManCard(name="송민칠", description="국제거래 조사 실무자. 강인한 체력과 끈질긴 분석으로 다수 글로벌기업 조사를 성공적으로 수행함.", cost=0, hp=100, focus=2, analysis=9, persuasion=6, evidence=8, data=9, ability_name="[역외탈세 추적]", ability_desc="'외국계' 기업 또는 '자본 거래' 혐의 공격 시 최종 피해량 +30%."),
+    "lim": TaxManCard(name="임향수", description="조사통의 대부. 대기업 비자금, 불법 증여 조사 지휘 경험 풍부.", cost=0, hp=100, focus=3, analysis=10, persuasion=10, evidence=10, data=10, ability_name="[기획 조사]", ability_desc="매 턴 집중력+1. 분석/데이터 스탯 비례 비용/자본 카드 피해량 증가."),
+    "han": TaxManCard(name="송민칠", description="국제거래 조사 실무자. 강인한 체력과 끈질긴 분석으로 다수 글로벌기업 조사를 성공적으로 수행함.", cost=0, hp=110, focus=2, analysis=9, persuasion=6, evidence=8, data=9, ability_name="[역외탈세 추적]", ability_desc="'외국계' 기업 또는 '자본 거래' 혐의 공격 시 최종 피해량 +30%."),
     "baek": TaxManCard(name="백용호", description="세제 글로벌기업. NTIS 등 과학세정 인프라 구축 경험.", cost=0, hp=90, focus=2, analysis=7, persuasion=10, evidence=9, data=7, ability_name="[TIS 분석]", ability_desc="'금융거래 분석', '빅데이터 분석' 등 데이터 관련 카드 비용 -1."),
     "seo": TaxManCard(name="허준", description="조사 글로벌기업. 변칙 상속/증여 조사를 강력 지휘. 대기업 조사 정통.", cost=0, hp=100, focus=2, analysis=8, persuasion=9, evidence=8, data=7, ability_name="[대기업 저격]", ability_desc="'대기업', '외국계' 기업의 '법인세' 혐의 카드 공격 시 최종 피해량 +25%."),
     "kim_dj": TaxManCard(name="김대조", description="세정 운영 글로벌기업. 데이터 기반 대규모 조사 경험.", cost=0, hp=90, focus=2, analysis=10, persuasion=7, evidence=7, data=10, ability_name="[부동산 투기 조사]", ability_desc="팀 '데이터' 스탯 50+ 시, 턴 시작 시 '금융거래 분석' 카드 1장 생성."),
@@ -474,7 +474,7 @@ TAX_MAN_DB = {
     "oh": TaxManCard(name="전팔성", description="데이터 글로벌기업. TIS 초기 멤버로 시스템 이해도 높음. 신종 거래 분석 능함.", cost=0, hp=110, focus=2, analysis=7, persuasion=6, evidence=7, data=8, ability_name="[데이터 마이닝]", ability_desc="기본 적출액 70억 이상 '데이터' 관련 카드(자금출처조사 등) 피해량 +15."),
     "jo": TaxManCard(name="조용규", description="세법 이론가. 교육원 교수 경험. 법리 해석과 판례 분석 뛰어남.", cost=0, hp=80, focus=3, analysis=9, persuasion=7, evidence=6, data=7, ability_name="[세법 교본]", ability_desc="'판례 제시', '법령 재검토' 카드의 효과(피해량/드로우) 2배 적용."),
     "park": TaxManCard(name="한유솔", description="부가세, 국제조세 전문가. 날카로운 법리 검토 능력.", cost=0, hp=70, focus=3, analysis=7, persuasion=5, evidence=6, data=7, ability_name="[법리 검토]", ability_desc="턴마다 처음 사용하는 '분석' 또는 '설득' 유형 카드의 비용 -1."),
-    "lee": TaxManCard(name="이찰수", description="조사국 신입. 열정 넘치나 경험 부족. 기본기 충실.", cost=0, hp=80, focus=2, analysis=5, persuasion=5, evidence=5, data=5, ability_name="[기본기]", ability_desc="'기본 경비 적정성 검토', '경비 처리 오류 지적' 카드 피해량 +8."),
+    "lee": TaxManCard(name="오슬비", description="조사국 신입. 부족한 경험을 보완할 열정과 센스를 갖춤. 기본기 충실 ", cost=0, hp=80, focus=2, analysis=5, persuasion=5, evidence=5, data=5, ability_name="[기본기]", ability_desc="'기본 경비 적정성 검토', '경비 처리 오류 지적' 카드 피해량 +8."),
     "ahn_wg": TaxManCard(name="안원규", description="특수 조사의 귀재. 서울청 조사0국 등에서 대기업 비자금 등 특수 조사 경험 풍부.", cost=0, hp=110, focus=2, analysis=8, persuasion=5, evidence=10, data=6, ability_name="[특수 조사]", ability_desc="'현장 압수수색', '차명계좌 추적' 카드 비용 -1 (최소 0)."),
     "yoo_jj": TaxManCard(name="이상언", description="조사0국 대기업 정기 조사 및 상속/증여세 조사 담당. 분석/설득 강점.", cost=0, hp=90, focus=2, analysis=8, persuasion=7, evidence=7, data=7, ability_name="[정기 조사 전문]", ability_desc="'단순 오류(Error)' 혐의 공격 시, 팀 '설득' 스탯 10당 피해량 +1."),
     "kim_th": TaxManCard(name="김태후", description="중부청 조사0국 대기업/중견기업 심층 기획 및 국제거래 조사 담당. OECD 파견 경험으로 국제 공조 및 BEPS 이해 깊음.", cost=0, hp=105, focus=2, analysis=9, persuasion=5, evidence=9, data=8, ability_name="[심층 기획 조사]", ability_desc="'자본 거래(Capital Tx)' 혐의 공격 시, 팀 '증거' 스탯의 10%만큼 추가 피해."),
@@ -2440,6 +2440,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
