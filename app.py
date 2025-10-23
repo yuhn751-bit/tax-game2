@@ -1739,7 +1739,7 @@ def show_main_menu():
         st.session_state.game_state = "GAME_SETUP_DRAFT"
         st.rerun()
 
-    with st.expander("📖 게임 방법", expanded=True):
+    with st.expander("📖 게임 방법", expanded=False):
         st.markdown("""
         **1. 🎯 목표**: 총 4단계(중소기업→중견기업→대기업→글로벌기업)의 기업 조사를 완료하고 승리.
         
@@ -2339,5 +2339,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
