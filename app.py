@@ -466,7 +466,7 @@ class EducationalSystem:
 TAX_MAN_DB = {
     "lim": TaxManCard(name="고민석", description="조사통의 대부. 대기업 비자금, 불법 증여 조사 지휘 경험 풍부.", cost=0, hp=100, focus=3, analysis=10, persuasion=10, evidence=10, data=10, ability_name="[기획 조사]", ability_desc="매 턴 집중력+1. 분석/데이터 스탯 비례 비용/자본 카드 피해량 증가."),
     "han": TaxManCard(name="송민칠", description="국제거래 조사 실무자. 강인한 체력과 끈질긴 분석으로 다수 글로벌기업 조사를 성공적으로 수행함.", cost=0, hp=110, focus=2, analysis=9, persuasion=6, evidence=8, data=9, ability_name="[역외탈세 추적]", ability_desc="'외국계' 기업 또는 '자본 거래' 혐의 공격 시 최종 피해량 +30%."),
-    "baek": TaxManCard(name="신태헌", description="세제 글로벌기업. NTIS 등 과학세정 인프라 구축 경험.", cost=0, hp=90, focus=2, analysis=7, persuasion=10, evidence=9, data=7, ability_name="[TIS 분석]", ability_desc="'금융거래 분석', '빅데이터 분석' 등 데이터 관련 카드 비용 -1."),
+    "baek": TaxManCard(name="신태연", description="세제 글로벌기업. NTIS 등 과학세정 인프라 구축 경험.", cost=0, hp=90, focus=2, analysis=7, persuasion=10, evidence=9, data=7, ability_name="[TIS 분석]", ability_desc="'금융거래 분석', '빅데이터 분석' 등 데이터 관련 카드 비용 -1."),
     "seo": TaxManCard(name="허준", description="글로벌기업 조사 전문. 비정기 조사를 강력 지휘. 대기업 조사 정통.", cost=0, hp=100, focus=2, analysis=8, persuasion=9, evidence=8, data=7, ability_name="[대기업 저격]", ability_desc="'대기업', '외국계' 기업의 '법인세' 혐의 카드 공격 시 최종 피해량 +25%."),
     "kim_dj": TaxManCard(name="김성래", description="세정 운영 글로벌기업. 데이터 기반 대규모 조사 경험.", cost=0, hp=90, focus=2, analysis=10, persuasion=7, evidence=7, data=10, ability_name="[부동산 투기 조사]", ability_desc="팀 '데이터' 스탯 50+ 시, 턴 시작 시 '금융거래 분석' 카드 1장 생성."),
     "lee_hd": TaxManCard(name="이승소", description="강력한 추진력의 조사통. 지하경제 양성화 및 역외탈세 추적 의지 강함.", cost=0, hp=100, focus=3, analysis=7, persuasion=8, evidence=10, data=8, ability_name="[지하경제 양성화]", ability_desc="'고의적 누락(Intentional)' 혐의 공격의 최종 피해량 +20%."),
@@ -1065,7 +1065,7 @@ def calculate_card_cost(card):
         original_cost = max(0, card.cost - 1)
         cost = original_cost
 
-        if "신태헌" in [m.name for m in st.session_state.player_team] and ('데이터' in card.name or '분석' in card.name or AttackCategory.CAPITAL in card.attack_category):
+        if "신태연" in [m.name for m in st.session_state.player_team] and ('데이터' in card.name or '분석' in card.name or AttackCategory.CAPITAL in card.attack_category):
             cost = max(0, cost - 1)
         
         is_first = st.session_state.get('turn_first_card_played', True)
@@ -2439,6 +2439,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
