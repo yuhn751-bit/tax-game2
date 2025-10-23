@@ -520,7 +520,7 @@ ARTIFACT_DB = {
 COMPANY_DB = [
     # --- C Group (Easy) ---
     Company(
-        name="(주)가나푸드", size="소규모", revenue=8000, operating_income=800, tax_target=15, team_hp_damage=(5, 12),
+        name="(주)가나푸드", size="소규모", revenue=8000, operating_income=800, tax_target=15, team_hp_damage=(7, 15),
         description="인기 **SNS 인플루언서**가 운영하는 **온라인 쇼핑몰**(식품 유통). 대표는 **고가 외제차**, **명품** 과시.",
         real_case_desc="""[교육] 최근 **온라인 플랫폼 기반 사업자**들의 탈세가 증가하고 있습니다. 주요 유형은 다음과 같습니다:
 * **개인 계좌** 사용: 법인 계좌 대신 대표 또는 가족 명의 계좌로 **매출 대금**을 받아 **매출 누락**.
@@ -539,8 +539,8 @@ COMPANY_DB = [
 **조세 정의 구현**:
 영세 자영업자들은 세금을 성실히 납부하는데, SNS로 큰 수익을 올리는 인플루언서가 탈세하는 것은 형평성을 해칩니다. 이번 조사로 **온라인 플랫폼 사업자의 성실 신고 분위기**가 조성되었습니다.""",
         tactics=[
-            EvasionTactic("사주 개인 유용 및 경비", "대표 개인 **명품 구매**(5천만원), **해외여행 경비**(3천만원), **자녀 학원비**(2천만원) 등 총 **1억원**을 법인 비용 처리.", 7, TaxType.CORP, MethodType.INTENTIONAL, AttackCategory.COST),
-            EvasionTactic("매출 누락 (개인 계좌)", "고객으로부터 받은 **현금 매출** 및 **계좌 이체** 대금 중 **3억원**을 대표 개인 계좌로 받아 **매출 신고 누락**.", 3, [TaxType.CORP, TaxType.VAT], MethodType.INTENTIONAL, AttackCategory.REVENUE)
+            EvasionTactic("사주 개인 유용 및 경비", "대표 개인 **명품 구매**(2억원), **해외여행 경비**(1억원), **자녀 학원비**(5천만원) 등 총 **7억원**을 법인 비용 처리.", 7, TaxType.CORP, MethodType.INTENTIONAL, AttackCategory.COST),
+            EvasionTactic("매출 누락 (개인 계좌)", "고객으로부터 받은 **현금 매출** 및 **계좌 이체** 대금 중 **8억원**을 대표 개인 계좌로 받아 **매출 신고 누락**.", 8, [TaxType.CORP, TaxType.VAT], MethodType.INTENTIONAL, AttackCategory.REVENUE)
         ],
         defense_actions=["담당 세무사가 '실수' 주장.", "대표가 '개인 돈 썼다'고 항변.", "경리 직원이 '몰랐다' 시전."],
         difficulty_tier=DifficultyTier.EASY
@@ -575,7 +575,7 @@ COMPANY_DB = [
     ),
     
     Company(
-        name="㈜넥선 (Nexun)", size="중견기업", revenue=200000, operating_income=15000, tax_target=80, team_hp_damage=(15, 30),
+        name="㈜넥선 (Nexun)", size="중견기업", revenue=200000, operating_income=15000, tax_target=75, team_hp_damage=(10, 24),
         description="최근 급성장한 **게임/IT 기업**. **R&D 투자**가 많고 임직원 **스톡옵션** 부여가 잦습니다.",
         real_case_desc="""[교육] IT 기업은 **연구개발(R&D) 세액공제** 적용 요건이 까다롭고 변경이 잦아 오류가 발생하기 쉽습니다. 특히 **인건비**나 **위탁개발비**의 적격 여부가 주된 쟁점입니다. 또한, 임직원에게 부여한 **스톡옵션**의 경우, 행사 시점의 **시가 평가** 및 과세 방식(근로소득 vs 기타소득)에 대한 검토가 필요하며, 이를 이용한 **세금 회피** 시도가 있을 수 있습니다.""",
         real_investigation_result="""📊 **실제 조사 결과**
@@ -592,7 +592,7 @@ COMPANY_DB = [
 **조세 정의 구현**:
 **R&D 세액공제** 제도는 기술 혁신을 장려하기 위한 것인데, 이를 악용한 탈세는 성실한 중소기업과의 형평성을 해칩니다. 이번 조사로 **IT 업계의 R&D 세액공제 남용**을 방지하고, **스톡옵션을 통한 편법 증여**도 차단했습니다.""",
         tactics=[
-            EvasionTactic("R&D 비용 부당 공제", "**연구개발 활동**과 직접 관련 없는 **인건비** 및 **일반 관리비** 50억원을 **R&D 세액공제** 대상 비용으로 허위 계상.", 60, TaxType.CORP, MethodType.INTENTIONAL, AttackCategory.COST),
+            EvasionTactic("R&D 비용 부당 공제", "**연구개발 활동**과 직접 관련 없는 **인건비** 및 **일반 관리비** 50억원을 **R&D 세액공제** 대상 비용으로 허위 계상.", 50, TaxType.CORP, MethodType.INTENTIONAL, AttackCategory.COST),
             EvasionTactic("스톡옵션 시가 저가 평가", "임원에게 부여한 **스톡옵션** 행사 시 **비상장주식 가치**를 의도적으로 낮게 평가하여 **소득세(근로소득)** 40억원 탈루.", 40, TaxType.CORP, MethodType.CAPITAL_TX, AttackCategory.CAPITAL)
         ],
         defense_actions=["회계법인이 '적격 R&D' 의견 제시.", "연구 노트 등 서류 미비.", "스톡옵션 평가는 '정관 규정' 따랐다고 주장."],
@@ -662,7 +662,7 @@ COMPANY_DB = [
     ),
     
     Company(
-        name="(주)한모약품 (Hanmo Pharm)", size="중견기업", revenue=400000, operating_income=30000, tax_target=300, team_hp_damage=(20, 35),
+        name="(주)한모약품 (Hanmo Pharm)", size="중견기업", revenue=400000, operating_income=30000, tax_target=250, team_hp_damage=(20, 35),
         description="**신약 개발**에 막대한 자금을 투자하는 **제약/바이오** 기업. **기술 수출** 실적 보유.",
         real_case_desc="""[교육] **제약/바이오** 산업은 **R&D 비용** 및 **무형자산(IP)** 가치 평가가 핵심 쟁점입니다. **R&D 세액공제** 대상이 아닌 비용을 공제받거나, **임상 실패** 가능성이 높은 프로젝트 비용을 **자산(개발비)**으로 과다 계상하여 법인세를 이연(분식회계)하는 경우가 있습니다. 또한 **조세피난처**의 자회사로 **특허권(IP)**을 **저가 양도**하여 국내 소득을 이전하는 방식도 사용됩니다.""",
         real_investigation_result="""📊 **실제 조사 결과**
@@ -684,7 +684,7 @@ COMPANY_DB = [
 바이오 기업들의 **복잡한 R&D 회계**와 **조세피난처 활용 소득이전**을 차단했습니다. 특히 국민 세금으로 지원받는 R&D 세액공제를 악용하면서, 핵심 기술은 해외로 빼돌리는 행위는 **경제적 주권 침해**입니다. 이번 조사로 제약업계의 **투명한 IP 거래**가 정착되는 계기가 되었습니다.""",
         tactics=[
             EvasionTactic("개발비 과다 자산화(분식회계)", "임상 **실패 가능성**이 높은 **신약 파이프라인** 관련 지출 200억원을 **비용**이 아닌 **무형자산(개발비)**으로 처리하여 **법인세** 이연/탈루.", 180, TaxType.CORP, MethodType.ERROR, AttackCategory.COST),
-            EvasionTactic("IP 저가 양도", "핵심 **신약 특허권**을 **조세피난처** 소재 **페이퍼컴퍼니** 자회사에 **정상 가격**(150억원)보다 현저히 낮은 30억원에 양도.", 120, TaxType.CORP, MethodType.CAPITAL_TX, AttackCategory.CAPITAL)
+            EvasionTactic("IP 저가 양도", "핵심 **신약 특허권**을 **조세피난처** 소재 **페이퍼컴퍼니** 자회사에 **정상 가격**(120억원)보다 현저히 낮은 30억원에 양도.", 90, TaxType.CORP, MethodType.CAPITAL_TX, AttackCategory.CAPITAL)
         ],
         defense_actions=["'회계 기준'에 따른 정상적 처리 주장.", "신약 가치 평가는 '미래 불확실성' 반영 필요.", "글로벌 스탠다드라며 자료 제출 비협조."],
         difficulty_tier=DifficultyTier.MEDIUM
@@ -756,7 +756,7 @@ COMPANY_DB = [
     ),
     
     Company(
-        name="(주)씨엔해운 (C&N)", size="대기업", revenue=12_000_000, operating_income=600_000, tax_target=1600, team_hp_damage=(25, 45),
+        name="(주)씨엔해운 (C&N)", size="대기업", revenue=12_000_000, operating_income=600_000, tax_target=1400, team_hp_damage=(25, 45),
         description="'**해운 재벌**'로 불리는 오너 운영. **조세피난처 SPC** 활용 및 **선박금융** 관련 복잡한 거래 구조.",
         real_case_desc="""[교육] 해운업과 같이 **자본 집약적**이고 **국제적** 성격 강한 산업은 **조세피난처**를 이용한 탈세 유인이 큽니다. **BVI, 라이베리아** 등에 설립한 **특수목적회사(SPC)** 명의로 선박을 운용하며 발생한 **운항 소득**을 국내에 신고 누락하거나, **노후 선박**을 이들 SPC에 **저가 양도**한 후 제3자에 **고가 매각**하여 양도 차익을 해외에 은닉하는 방식이 대표적인 역외탈세 사례입니다.""",
         real_investigation_result="""📊 **실제 조사 결과**
@@ -2338,6 +2338,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
