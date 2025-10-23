@@ -2001,7 +2001,7 @@ def show_battle_screen():
             with act_cols[1]:
                 c1, c2 = st.columns(2)
                 with c1:
-                    st.button("⚡ 자동", on_click=execute_auto_attack, use_container_width=True, type="secondary", 
+                    st.button("⚡ 자동공격", on_click=execute_auto_attack, use_container_width=True, type="secondary", 
                              help="[❤️-5, 💥-10% 페널티] 가장 강력한 카드로 자동 공격합니다.")
 
         with st.expander("💡 특별 지시 (조사지원 요청)"):
@@ -2339,6 +2339,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
