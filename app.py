@@ -1403,13 +1403,13 @@ def execute_auto_attack():
 
             if target_idx != -1:
                 st.session_state.team_hp -= hp_cost
-                log_message(f"⚡ 자동 공격 사용! (팀 체력 -{hp_cost}, 피해량 25% 감소)", "warning")
-                st.toast(f"⚡ 자동 공격! (❤️-{hp_cost}, 💥-25%)", icon="🤖")
+                log_message(f"⚡ 자동 공격 사용! (팀 체력 -{hp_cost}, 피해량 10% 감소)", "warning")
+                st.toast(f"⚡ 자동 공격! (❤️-{hp_cost}, 💥-10%)", icon="🤖")
                 
                 target_name = "[잔여 혐의 조사]" if target_idx >= len(company.tactics) else company.tactics[target_idx].name
                 log_message(f"⚡ 자동 공격: '{current_card.name}' -> '{target_name}'!", "info")
 
-                execute_attack(current_idx, target_idx, penalty_mult=0.75)
+                execute_attack(current_idx, target_idx, penalty_mult=0.9)
                 attack_executed = True
                 break
 
@@ -1750,7 +1750,7 @@ def show_main_menu():
         **3. 💡 전략**:
         - 혐의 유형(`고의`, `오류`, `자본`)에 맞는 카드 사용 시 추가 피해!
         - 팀 스탯(분석력, 설득력, 증거력, 데이터)을 활용한 카드 선택
-        - 자동 공격(체력 -5, 피해량 -25%)과 과세 논리 개발(체력 50% 소모) 활용
+        - 자동 공격(체력 -5, 피해량 -10%)과 과세 논리 개발(체력 50% 소모) 활용
         
         **4. 📈 성장**: 
         - 스테이지가 오를수록 기본 카드가 강해집니다
@@ -2002,7 +2002,7 @@ def show_battle_screen():
                 c1, c2 = st.columns(2)
                 with c1:
                     st.button("⚡ 자동", on_click=execute_auto_attack, use_container_width=True, type="secondary", 
-                             help="[❤️-5, 💥-25% 페널티] 가장 강력한 카드로 자동 공격합니다.")
+                             help="[❤️-5, 💥-10% 페널티] 가장 강력한 카드로 자동 공격합니다.")
 
         with st.expander("💡 특별 지시 (조사지원 요청)"):
             st.button("과세 논리 개발 (❤️ 현재 체력 50% 소모)", on_click=develop_tax_logic, use_container_width=True, type="primary",
@@ -2440,6 +2440,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
