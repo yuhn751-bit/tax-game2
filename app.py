@@ -2142,7 +2142,7 @@ def show_reward_screen():
     
     # ⭐ 조사 보고서 - 항상 먼저 표시
     try:
-        with st.expander("📋 조사 보고서 보기", expanded=False):
+        with st.expander("📋 **조사 결과 보고서**", expanded=True):
             report = EducationalSystem.generate_battle_report(co, st.session_state.battle_stats)
             
             st.subheader("📊 조사 효율성")
@@ -2339,4 +2339,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
