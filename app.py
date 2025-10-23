@@ -472,7 +472,7 @@ TAX_MAN_DB = {
     "lee_hd": TaxManCard(name="이승소", description="강력한 추진력의 조사통. 지하경제 양성화 및 역외탈세 추적 의지 강함.", cost=0, hp=100, focus=3, analysis=7, persuasion=8, evidence=10, data=8, ability_name="[지하경제 양성화]", ability_desc="'고의적 누락(Intentional)' 혐의 공격의 최종 피해량 +20%."),
     "oh": TaxManCard(name="우병찬", description="대기업 조사 전문가. 지주사 조사에 능함. ERP구축 경험.", cost=0, hp=110, focus=2, analysis=7, persuasion=6, evidence=7, data=8, ability_name="[데이터 마이닝]", ability_desc="기본 적출액 70억 이상 '데이터' 관련 카드(자금출처조사 등) 피해량 +15."),
     "kim": TaxManCard(name="박찬보", description="현장 글로벌기업. 서울청 조사0국 '지하경제 양성화' 관련 조사 다수 수행.", cost=0, hp=90, focus=2, analysis=6, persuasion=8, evidence=9, data=5, ability_name="[압수수색]", ability_desc="'현장 압수수색' 카드 사용 시 15% 확률로 '결정적 증거' 추가 획득."),
-    "jo": TaxManCard(name="구자환", description="인공지능 전문가. 교육원 교수 경험. 법리 해석과 판례 분석 뛰어남.", cost=0, hp=80, focus=3, analysis=9, persuasion=7, evidence=6, data=7, ability_name="[세법 교본]", ability_desc="'판례 제시', '법령 재검토' 카드의 효과(피해량/드로우) 2배 적용."),
+    "jo": TaxManCard(name="구자환", description="인공지능 전문가. 국세공무원교육원 교수 경험. 법리 해석과 판례 분석 뛰어남.", cost=0, hp=80, focus=3, analysis=9, persuasion=7, evidence=6, data=7, ability_name="[세법 교본]", ability_desc="'판례 제시', '법령 재검토' 카드의 효과(피해량/드로우) 2배 적용."),
     "park": TaxManCard(name="한유솔", description="젊은 감각의 부가세, 국제조세 전문가. 날카로운 법리 검토 능력.", cost=0, hp=70, focus=3, analysis=7, persuasion=5, evidence=6, data=7, ability_name="[법리 검토]", ability_desc="턴마다 처음 사용하는 '분석' 또는 '설득' 유형 카드의 비용 -1."),
     "lee": TaxManCard(name="오슬비", description="조사국 신입. 부족한 경험을 보완할 열정과 센스를 갖춤. 기본기 충실 ", cost=0, hp=80, focus=2, analysis=5, persuasion=5, evidence=5, data=5, ability_name="[기본기]", ability_desc="'기본 경비 적정성 검토', '경비 처리 오류 지적' 카드 피해량 +8."),
     "ahn_wg": TaxManCard(name="김희진", description="특수 조사의 귀재. 중부청 조사0국 등에서 대기업 역외탈세 조사 등 특수 조사 경험 풍부.", cost=0, hp=110, focus=2, analysis=8, persuasion=5, evidence=10, data=6, ability_name="[특수 조사]", ability_desc="'현장 압수수색', '차명계좌 추적' 카드 비용 -1 (최소 0)."),
@@ -2440,6 +2440,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
