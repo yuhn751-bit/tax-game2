@@ -2062,106 +2062,6 @@ def show_battle_screen():
 
                     if st.button(btn_label, key=f"play_{i}", use_container_width=True, disabled=disabled, help=tooltip):
                         select_card_to_play(i)
-
-def show_reward_screen():
-    """보상 화면"""
-    # 아직 처리 안 된 보너스 보상이 있으면 REWARD_BONUS로 리다이렉트
-    if st.session_state.get('bonus_reward_artifact') or st.session_state.get('bonus_reward_member'):
-        st.session_state.game_state = "REWARD_BONUS"
-        st.rerun()
-        return
-
-    st.header("🎉 조사 승리!")
-    st.balloons()
-    
-    co = st.session_state.current_battle_company
-    st.success(f"**{co.name}** 조사 완료. 총 {co.current_collected_tax:,}억원 추징.")
-    
-    # ⭐ 조사 보고서 - 항상 먼저 표시
-    try:
-        with st.expander("📋 조사 보고서 보기", expanded=False):
-            report = EducationalSystem.generate_battle_report(co, st.session_state.battle_stats)
-            
-            st.subheader("📊 조사 효율성")
-            c1, c2, c3 = st.columns(3)
-            c1.metric("턴당 추징액", f"{report['efficiency']['damage_per_turn']:.1f}억원")
-            c2.metric("턴당 카드 사용", f"{report['efficiency']['cards_per_turn']:.1f}장")
-            c3.metric("목표 달성률", f"{report['efficiency']['target_achievement']:.1f}%")
-            
-            # 실제 조사 결과 표시
-            if report.get('real_result'):
-                st.markdown("---")
-                st.markdown(report['real_result'])
-    except Exception as e:
-        st.error(f"조사 보고서 생성 중 오류: {e}")
-        st.info(f"총 {st.session_state.battle_stats['turns_taken']}턴 소요, {co.current_collected_tax:,}억원 추징")
-    
-    st.markdown("---")
-
-    # ⭐ 마지막 스테이지 체크를 여기로 이동
-    is_final_stage = st.session_state.current_stage_level >= len(st.session_state.company_order) - 1
-    
-    if is_final_stage:
-        # 마지막 스테이지면 게임 클리어 버튼만 표시
-        st.success("🎊 모든 조사를 완료했습니다!")
-        if st.button("🏆 최종 결과 보기", type="primary", use_container_width=True):
-            st.session_state.game_state = "GAME_CLEAR"
-            st.rerun()
-        return
-
-    # 마지막이 아니면 카드 선택
-    st.subheader("🎁 획득할 카드 1장 선택")
-    
-    if 'reward_cards' not in st.session_state or not st.session_state.reward_cards:
-        pool = [c for c in LOGIC_CARD_DB.values() 
-               if not (c.cost == 0 and c.special_effect and c.special_effect.get("type") == "draw")]
-        opts = []
-        
-        has_cap = any(t.method_type == MethodType.CAPITAL_TX for t in co.tactics)
-        if has_cap:
-            cap_cards = [c for c in pool if AttackCategory.CAPITAL in c.attack_category and c not in opts]
-            if cap_cards:
-                opts.append(random.choice(cap_cards))
-                st.toast("ℹ️ [보상 가중치] '자본' 카드 1장 포함!")
-        
-        remain = [c for c in pool if c not in opts]
-        num_add = 3 - len(opts)
-        
-        if len(remain) < num_add:
-            opts.extend(random.sample(remain, len(remain)))
-        else:
-            opts.extend(random.sample(remain, num_add))
-        
-        while len(opts) < 3 and len(pool) > 0:
-            add = random.choice(pool)
-            if add not in opts or len(pool) < 3:
-                opts.append(add)
-        
-        st.session_state.reward_cards = opts
-
-    cols = st.columns(len(st.session_state.reward_cards))
-    for i, card in enumerate(st.session_state.reward_cards):
-        with cols[i]:
-            with st.container(border=True):
-                types_values = get_enum_values(card.tax_type)
-                cats_values = get_enum_values(card.attack_category)
-                st.markdown(f"**{card.name}**|비용:{card.cost}🧠")
-                st.caption(f"세목:`{'`,`'.join(types_values)}`|유형:`{'`,`'.join(cats_values)}`")
-                st.markdown(card.description)
-                
-                if card.base_damage > 0:
-                    st.info(f"**기본 적출액:** {card.base_damage} 억원")
-                elif card.special_effect and card.special_effect.get("type") == "draw":
-                    st.info(f"**드로우:** +{card.special_effect.get('value', 0)}")
-                
-                if card.special_bonus:
-                    st.warning(f"**보너스:** {card.special_bonus.get('bonus_desc')}")
-
-                if st.button(f"선택: {card.name}", key=f"reward_{i}", use_container_width=True, type="primary"):
-                    go_to_next_stage(add_card=card)
-
-    st.markdown("---")
-    st.button("카드 획득 안 함 (다음 스테이지로)", on_click=go_to_next_stage, type="secondary", use_container_width=True)
     
 def show_reward_bonus_screen():
     """보너스 보상 화면"""
@@ -2440,3 +2340,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
