@@ -520,7 +520,7 @@ ARTIFACT_DB = {
 COMPANY_DB = [
     # --- C Group (Easy) ---
     Company(
-        name="(주)가나푸드", size="소규모", revenue=8000, operating_income=800, tax_target=10, team_hp_damage=(5, 12),
+        name="(주)가나푸드", size="소규모", revenue=8000, operating_income=800, tax_target=15, team_hp_damage=(5, 12),
         description="인기 **SNS 인플루언서**가 운영하는 **온라인 쇼핑몰**(식품 유통). 대표는 **고가 외제차**, **명품** 과시.",
         real_case_desc="""[교육] 최근 **온라인 플랫폼 기반 사업자**들의 탈세가 증가하고 있습니다. 주요 유형은 다음과 같습니다:
 * **개인 계좌** 사용: 법인 계좌 대신 대표 또는 가족 명의 계좌로 **매출 대금**을 받아 **매출 누락**.
@@ -575,7 +575,7 @@ COMPANY_DB = [
     ),
     
     Company(
-        name="㈜넥선 (Nexun)", size="중견기업", revenue=200000, operating_income=15000, tax_target=100, team_hp_damage=(15, 30),
+        name="㈜넥선 (Nexun)", size="중견기업", revenue=200000, operating_income=15000, tax_target=80, team_hp_damage=(15, 30),
         description="최근 급성장한 **게임/IT 기업**. **R&D 투자**가 많고 임직원 **스톡옵션** 부여가 잦습니다.",
         real_case_desc="""[교육] IT 기업은 **연구개발(R&D) 세액공제** 적용 요건이 까다롭고 변경이 잦아 오류가 발생하기 쉽습니다. 특히 **인건비**나 **위탁개발비**의 적격 여부가 주된 쟁점입니다. 또한, 임직원에게 부여한 **스톡옵션**의 경우, 행사 시점의 **시가 평가** 및 과세 방식(근로소득 vs 기타소득)에 대한 검토가 필요하며, 이를 이용한 **세금 회피** 시도가 있을 수 있습니다.""",
         real_investigation_result="""📊 **실제 조사 결과**
@@ -2338,6 +2338,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
